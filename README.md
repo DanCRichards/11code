@@ -4,16 +4,26 @@
 Project originally based off of py5mon by Mathias Bøhn Grytemark. Copied, adapated under Creative Commons Attribution-ShareAlike 3.0 uported License. 
 
 ## Description
-As stated above originally based off of the py5mon script adapted to decode Sepac SellCalls. - Large New Zealand Government based agencies might use this format. 
-Also based off of 1980s technology that has been adapted so many times over the years.
+As stated above originally based off of the py5mon script adapted to decode Sepac SellCalls.
 
-Supports both input from WAV-files (22050Hz mono 16bit) and line-in/microphone.
+## Useage
+For WAV Files
+```
+python3 SepacDecoder.py -p 821-K1.wav 
+```
+
+For Mic Input
+```
+python3 SepacDecoder.py -i
+```
+
+
 
 ## Dependencies
 This is the stuff I hate. 
 
 UNIX: 
-0. Python 2.7 - Should be installed already.
+0. Python 3 - Should be installed already.
 1. PortAudio
 ```sh
 brew install portaudio
