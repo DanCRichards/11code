@@ -181,6 +181,8 @@ def cleantrain(train):
         printtrain(btrain)
     elif len(newtrain) == 6:  #FOR STATION TONES / FCOM ACK
         printtrain(newtrain)
+    elif len(newtrain) > 5:
+        printtrain(newtrain)
 
 
 def printtrain(newtrain):

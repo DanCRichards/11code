@@ -6,20 +6,8 @@ Project originally based off of py5mon by Mathias Bøhn Grytemark. Copied, adapa
 ## Description
 As stated above originally based off of the py5mon script adapted to decode Sepac SellCalls.
 
-## Useage
-For WAV Files
-```
-python3 SepacDecoder.py -p 821-K1.wav 
-```
 
-For Mic Input
-```
-python3 SepacDecoder.py -i
-```
-
-
-
-## Dependencies
+### Dependencies
 This is the stuff I hate. 
 
 UNIX: 
