@@ -20,9 +20,26 @@ import numpy
 import sys
 import os
 import stat
-stations = {"114831":"East Coast Bays", "114901":"Silverdale", "113201":"Auckland City", "114821":"Birkenhead"}
-appliances = {'db531':"EAST COAST BAY 832", "db884":"EAST COAST BAY 831", "cd861":"BIRKENHEAD 821"}
+stations = dict() 
+appliances = dict() 
+with open('Store/appliances.txt') as openfileobject:
+    for line in openfileobject:
+        data = line.split(',')
+        appliances[data[0]] = data[1][0:-1]
 
+with open('Store/stations.txt') as openfileobject:
+    for line in openfileobject:
+        data = line.split(',')
+        stations[data[0]] = data[1][0:-1]
+
+# The notifier function
+def notify(title, subtitle, message):
+    t = '-title {!r}'.format(title)
+    s = '-subtitle {!r}'.format(subtitle)
+    m = '-message {!r}'.format(message)
+    os.system('terminal-notifier {}'.format(' '.join([m, t, s])))
+
+# Calling the function
 parser = OptionParser(usage='%prog [-d] [-i] [-p] FILE')
 parser.add_option(
     '-d',
@@ -133,6 +150,8 @@ reffreq['f'] = 1055
 # need to remove decimals
 
 def numdec(x):
+    if x != x:
+        x = 10
     return int('{0:g}'.format(x))
 
 
@@ -176,10 +195,23 @@ def printtrain(newtrain):
         #For Station Tone / FCom ACK 
         if train[0] == 'd' or train[0] == 'c':
             # Appliance
+            if train[0:5] not in appliances:
+                appliances[train[0:5]] = "UNKNOWN " + str(train[0:5])
+                f = open("Store/appliances.txt", "a")
+                f.write(train[0:5] + ",Unknown Appliance\n")
+                f.close()
             sys.stdout.write("Appliance: " + str(appliances[train[0:5]]))
         if train[0] == '1':
             #Station Tone
+            if train[0:5] not in stations:
+                stations[train[0:5]] = "UNKNOWN STATION " + str(train)
+                f = open("Store/stations.txt", "a")
+                f.write(train[0:5] + ", Unknown Station\n")
+                f.close()
             sys.stdout.write( str(stations[train]) + " Fire Station Turnout")
+            notify(title    = str(stations[train]) + " turnout",
+                   subtitle = 'FENZ SelCall Decoder',
+                   message  = 'Turnout Tone')
     else:
         kCode = int(train[1])
         if kCode == 1:
@@ -198,6 +230,7 @@ def printtrain(newtrain):
             else:
                 sys.stdout.write("K9 - On Station(" + str("".join(newtrain[2:4]))+")")
     sys.stdout.write('\n')
+    sys.stdout.write(train)
 
 
 # this is to actually play the file

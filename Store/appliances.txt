@@ -1,0 +1,8 @@
+cdb531,East Coast Bays 832
+cdb72f,Grey Lynn 261
+c5802,Balmoral 611
+c5d92,Silverdale Operational Support Unit 1
+c5d5c,Unknown Appliance
+db884,EAST COAST BAY 831
+cd861,BIRKENHEAD 821
+db62e,AUCKLAND CITY 207
