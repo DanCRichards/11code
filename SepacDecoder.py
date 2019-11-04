@@ -118,7 +118,7 @@ if not ainput:
     rate = wav.getframerate()
 else:
     pi = pyaudio.PyAudio()
-    streaminput = pi.open(format=pyaudio.paInt16, rate=44100,
+    streaminput = pi.open(format=pyaudio.paInt16, rate=44150,
                           channels=1, input=True,
                           frames_per_buffer=frames)
     sw = pi.get_sample_size(pyaudio.paInt16)
@@ -210,8 +210,8 @@ def printtrain(newtrain):
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
-            sys.stdout.write( str(stations[train]) + " Fire Station Turnout")
-            notify(title    = str(stations[train]) + " turnout",
+            sys.stdout.write( str(stations[train[0:6]]) + " Fire Station Turnout")
+            notify(title    = str(stations[train[0:6]]) + " turnout",
                    subtitle = 'FENZ SelCall Decoder',
                    message  = 'Turnout Tone')
     else:
@@ -282,7 +282,7 @@ while len(data) == frames * sw:
         print('Freq: %i' % freq)
 
     if ainput:
-        data = streaminput.read(frames)
+        data = streaminput.read(frames, exception_on_overflow = False)
     else:
         data = wav.readframes(frames)
 
