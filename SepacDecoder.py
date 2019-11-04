@@ -162,18 +162,18 @@ def checkfreq(freq, reffreq):
         if rfreq - 14 <= freq and rfreq + 14 >= freq:
             return rtone
 
-
 # clean the train
 
 def cleantrain(train):
     lasttone = None
     newtrain = []
-
     for tone in train:
         if not tone == lasttone:
             newtrain.append(tone)
         lasttone = tone
 
+    if len(newtrain) > 5:
+        print("".join(newtrain))
     if len(newtrain) == 11:   # FOR APPLIANCE K CODE
         atrain = newtrain[:6]
         btrain = newtrain[6:]
@@ -181,9 +181,7 @@ def cleantrain(train):
         printtrain(btrain)
     elif len(newtrain) == 6:  #FOR STATION TONES / FCOM ACK
         printtrain(newtrain)
-    elif len(newtrain) > 5:
-        printtrain(newtrain)
-
+        
 
 def printtrain(newtrain):
     lasttone = None
@@ -198,9 +196,10 @@ def printtrain(newtrain):
         if train[0] == 'd' or train[0] == 'c':
             # Appliance
             if train[0:5] not in appliances:
-                appliances[train[0:5]] = "UNKNOWN " + str(train[0:5])
+                appliances[train[0:6]] = "UNKNOWN " + str(train[0:5])
                 f = open("Store/appliances.txt", "a")
-                f.write(train[0:5] + ",Unknown Appliance\n")
+                f.write(train[0:6] + ",Unknown Appliance\n")
+                appliances[train[0:5]] = 'Unknown'
                 f.close()
             sys.stdout.write("Appliance: " + str(appliances[train[0:5]]))
         if train[0] == '1':
@@ -208,7 +207,8 @@ def printtrain(newtrain):
             if train[0:5] not in stations:
                 stations[train[0:5]] = "UNKNOWN STATION " + str(train)
                 f = open("Store/stations.txt", "a")
-                f.write(train[0:5] + ", Unknown Station\n")
+                f.write(train[0:6] + ",Unknown Station\n")
+                stations[train[0:6]] = "Unknown station"
                 f.close()
             sys.stdout.write( str(stations[train]) + " Fire Station Turnout")
             notify(title    = str(stations[train]) + " turnout",
@@ -232,7 +232,6 @@ def printtrain(newtrain):
             else:
                 sys.stdout.write("K9 - On Station(" + str("".join(newtrain[2:4]))+")")
     sys.stdout.write('\n')
-    sys.stdout.write(train)
 
 
 # this is to actually play the file

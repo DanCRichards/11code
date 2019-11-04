@@ -8,40 +8,21 @@ As stated above originally based off of the py5mon script adapted to decode Sepa
 
 
 ### Dependencies
-This is the stuff I hate. 
 
-UNIX: 
+UNIX or macOS (Unsure of Windows capaability):
 0. Python 3 - Should be installed already.
 1. PortAudio
-```sh
-brew install portaudio
-```
 2. PyAudio
-```sh
-sudo pip install pyaudio
-```
 3. Numpy - Should be installed. 
-```sh
-pip install numpy
-```
-4.Wave 
-```sh 
-sudo pip install wave
-```
+4. Wave 
 
 
-## Installation
+## Installation and running
 
-Unix Systems:
 ```sh
 cd /yourDirectory/
 git clone http://www.github.com/DanCRichards/SepacDecoder
-```
-
-## Usage examples: 
-
-```sh
-python SepacDecoder.py yourFile.wav
+python SepacDecoder.py -i
 ```
 
 Options:
