@@ -22,15 +22,22 @@ import os
 import stat
 stations = dict() 
 appliances = dict() 
-with open('Store/appliances.txt') as openfileobject:
+areas = dict()
+# name appliances
+with open('Store/appliances.lst') as openfileobject:
     for line in openfileobject:
         data = line.split(',')
         appliances[data[0]] = data[1][0:-1]
-
-with open('Store/stations.txt') as openfileobject:
+#name stations
+with open('Store/stations.lst') as openfileobject:
     for line in openfileobject:
         data = line.split(',')
         stations[data[0]] = data[1][0:-1]
+# name areas - probably the same as stations, but not always (eg; vrrf's)
+with open('Store/areas.lst') as openfileobject:
+    for line in openfileobject:
+        data = line.split(',')
+        areas[data[0]] = data[1][0:-1]
 
 # The notifier function
 def notify(title, subtitle, message):
@@ -128,6 +135,7 @@ window = numpy.blackman(frames)
 train = []
 tonenone = 0
 
+# updated freqs with correct values
 reffreq = {}
 reffreq['1'] = 1124
 reffreq['2'] = 1197
@@ -139,12 +147,12 @@ reffreq['7'] = 1640
 reffreq['8'] = 1747
 reffreq['9'] = 1860
 reffreq['0'] = 1981
-reffreq['a'] = 2400
-reffreq['b'] = 930
-reffreq['c'] = 2247
-reffreq['d'] = 991
-reffreq['e'] = 2110
-reffreq['f'] = 1055
+reffreq['a'] = 1055
+reffreq['b'] = 2110
+reffreq['c'] = 991
+reffreq['d'] = 2247
+reffreq['e'] = 930
+reffreq['f'] = 2400
 
 
 # need to remove decimals
@@ -197,7 +205,7 @@ def printtrain(newtrain):
             # Appliance
             if train[0:5] not in appliances:
                 appliances[train[0:6]] = "UNKNOWN " + str(train[0:5])
-                f = open("Store/appliances.txt", "a")
+                f = open("Store/appliances.lst", "a")
                 f.write(train[0:6] + ",Unknown Appliance\n")
                 appliances[train[0:5]] = 'Unknown'
                 f.close()
@@ -206,7 +214,7 @@ def printtrain(newtrain):
             #Station Tone
             if train[0:5] not in stations:
                 stations[train[0:5]] = "UNKNOWN STATION " + str(train)
-                f = open("Store/stations.txt", "a")
+                f = open("Store/stations.lst", "a")
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
@@ -296,5 +304,3 @@ if play:
 if train:
     cleantrain(train)
 
-
-            
