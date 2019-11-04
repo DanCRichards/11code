@@ -10,7 +10,6 @@
 #
 #   www.github.com/DanCRichards/SepacDecoder
 #
-#
 # =============================================
 
 from optparse import OptionParser
