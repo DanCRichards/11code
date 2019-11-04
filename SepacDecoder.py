@@ -22,15 +22,22 @@ import os
 import stat
 stations = dict() 
 appliances = dict() 
+areas = dict()
+# name appliances
 with open('Store/appliances.lst') as openfileobject:
     for line in openfileobject:
         data = line.split(',')
         appliances[data[0]] = data[1][0:-1]
-
+#name stations
 with open('Store/stations.lst') as openfileobject:
     for line in openfileobject:
         data = line.split(',')
         stations[data[0]] = data[1][0:-1]
+# name areas - probably the same as stations, but not always (eg; vrrf's)
+with open('Store/areas.lst') as openfileobject:
+    for line in openfileobject:
+        data = line.split(',')
+        areas[data[0]] = data[1][0:-1]
 
 # The notifier function
 def notify(title, subtitle, message):
