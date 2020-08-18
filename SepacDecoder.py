@@ -146,13 +146,19 @@ reffreq['7'] = 1640
 reffreq['8'] = 1747
 reffreq['9'] = 1860
 reffreq['0'] = 1981
-reffreq['a'] = 1055
-reffreq['b'] = 2110
-reffreq['c'] = 991
-reffreq['d'] = 2247
-reffreq['e'] = 930
-reffreq['f'] = 2400
+reffreq['A'] = 2400 # 2400 
+reffreq['B'] = 930 # 930 
+reffreq['C'] = 2247  # 2247
+reffreq['D'] = 991 # 991
+reffreq['E'] = 2210  # 2210
+reffreq['F'] = 1055 # 1055
 
+#reffreq['a'] = 1055 # 2400 
+#reffreq['b'] = 2110 # 930 
+#reffreq['c'] = 991  # 2247
+#reffreq['d'] = 2247 # 991
+#reffreq['e'] = 930  # 2210
+#reffreq['f'] = 2400 # 1055
 
 # need to remove decimals
 
@@ -181,10 +187,9 @@ def cleantrain(train):
 
     if len(newtrain) > 5:
         print("".join(newtrain))
-    if len(newtrain) == 11:   # FOR APPLIANCE K CODE
+    if len(newtrain) >= 10:   # FOR APPLIANCE K CODE
         atrain = newtrain[:6]
         btrain = newtrain[6:]
-        printtrain(atrain)
         printtrain(btrain)
     elif len(newtrain) == 6:  #FOR STATION TONES / FCOM ACK
         printtrain(newtrain)
@@ -194,47 +199,49 @@ def printtrain(newtrain):
     lasttone = None
     train = ''
     for tone in newtrain:
-        if tone == 'e' and lasttone:
+        if tone == 'E' and lasttone:
             tone = lasttone
         lasttone = tone
         train = train + tone
-    if len(train) == 6:
+    if len(train) >= 5:
         #For Station Tone / FCom ACK 
-        if train[0] == 'd' or train[0] == 'c':
+        if train[0] == 'D' or train[0] == 'C':
+            # Currently not worrying about K Codes... Just worry about station turnouts 
+            return
             # Appliance
             if train[0:5] not in appliances:
                 appliances[train[0:6]] = "UNKNOWN " + str(train[0:5])
-                f = open("Store/appliances.lst", "a")
+                f = open("Store/unknownAppliances.lst", "a")
                 f.write(train[0:6] + ",Unknown Appliance\n")
                 appliances[train[0:5]] = 'Unknown'
                 f.close()
             sys.stdout.write("Appliance: " + str(appliances[train[0:5]]))
         if train[0] == '1':
             #Station Tone
-            if train[0:5] not in stations:
-                stations[train[0:5]] = "UNKNOWN STATION " + str(train)
-                f = open("Store/stations.lst", "a")
+            if train[0:6] not in stations:
+                stations[train[0:6]] = "UNKNOWN STATION " + str(train)
+                f = open("Store/unknownStations.lst", "a")
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
-            sys.stdout.write( str(stations[train[0:6]]) + " Fire Station Turnout")
-            notify(title    = str(stations[train[0:6]]) + " turnout",
-                   subtitle = 'FENZ SelCall Decoder',
-                   message  = 'Turnout Tone')
+            sys.stdout.write( str(stations[train[0:6]]) + " Turnout")
+            
     else:
-        kCode = int(train[1])
-        if kCode == 1:
+        kCode = str(train[1])
+        if kCode == '1':
             sys.stdout.write("K1 - Responding")
-        elif kCode == 2:
+        elif kCode == '2':
             sys.stdout.write("K2 - At Incident")
-        elif kCode == 3:
+        elif kCode == '3':
             sys.stdout.write("K3 - Out of Area(" + str("".join(newtrain[2:4]))+")")
-        elif kCode == 4:
+        elif kCode == '4':
             sys.stdout.write("K4 - On RT In Area")
-        elif kCode == 7:
-            sys.stdout.write("K7 - On Station")
-        elif kCode == 9:
-            if int(train[2]) == 9:
+        elif kCode == '7':
+            sys.stdout.write("K77 - On Station")
+        elif kCode == '6':
+            sys.stdout.write('K66 - Non Property Fire')
+        elif kCode == '9':
+            if str(train[2]) == '9':
                 sys.stdout.write("K99 - Fire Well Involved on Arrival")
             else:
                 sys.stdout.write("K9 - On Station(" + str("".join(newtrain[2:4]))+")")
@@ -268,7 +275,6 @@ while len(data) == frames * sw:
     else:
         freq = which * rate / frames
     freq = numdec(round(freq))
-
     tone = checkfreq(freq, reffreq)
     if tone:
         if debug:
