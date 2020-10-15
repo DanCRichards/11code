@@ -14,6 +14,7 @@
 
 from optparse import OptionParser
 import pyaudio
+from datetime import datetime
 import wave
 import numpy
 import sys
@@ -194,6 +195,7 @@ def cleantrain(train):
         
 
 def printtrain(newtrain):
+    now = datetime.now()
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     lasttone = None
     train = ''
@@ -209,7 +211,7 @@ def printtrain(newtrain):
             # Appliance
             if train[0:5] not in appliances:
                 appliances[train[0:6]] = "UNKNOWN " + str(train[0:5])
-                f = open("Store/unknownAppliances.lst", "a")
+                f = open("Store/appliances.lst", "a")
                 f.write(train[0:6] + ",Unknown Appliance\n")
                 appliances[train[0:5]] = 'Unknown'
                 f.close()
@@ -218,7 +220,7 @@ def printtrain(newtrain):
             #Station Tone
             if train[0:6] not in stations:
                 stations[train[0:6]] = "UNKNOWN STATION " + str(train)
-                f = open("Store/unknownStations.lst", "a")
+                f = open("Store/stations.lst", "a")
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
