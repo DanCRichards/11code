@@ -185,17 +185,16 @@ def cleantrain(train):
             newtrain.append(tone)
         lasttone = tone
 
-    if len(newtrain) > 5:
-        print("".join(newtrain))
     if len(newtrain) >= 10:   # FOR APPLIANCE K CODE
         atrain = newtrain[:6]
         btrain = newtrain[6:]
-        printtrain(btrain)
+        printtrain(newtrain)
     elif len(newtrain) == 6:  #FOR STATION TONES / FCOM ACK
         printtrain(newtrain)
         
 
 def printtrain(newtrain):
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     lasttone = None
     train = ''
     for tone in newtrain:
@@ -207,7 +206,6 @@ def printtrain(newtrain):
         #For Station Tone / FCom ACK 
         if train[0] == 'D' or train[0] == 'C':
             # Currently not worrying about K Codes... Just worry about station turnouts 
-            return
             # Appliance
             if train[0:5] not in appliances:
                 appliances[train[0:6]] = "UNKNOWN " + str(train[0:5])
@@ -215,7 +213,7 @@ def printtrain(newtrain):
                 f.write(train[0:6] + ",Unknown Appliance\n")
                 appliances[train[0:5]] = 'Unknown'
                 f.close()
-            sys.stdout.write("Appliance: " + str(appliances[train[0:5]]))
+            sys.stdout.write(dt_string + "\t" + "Appliance: " + str(appliances[train[0:5]]))
         if train[0] == '1':
             #Station Tone
             if train[0:6] not in stations:
@@ -224,7 +222,7 @@ def printtrain(newtrain):
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
-            sys.stdout.write( str(stations[train[0:6]]) + " Turnout")
+            sys.stdout.write(dt_string + "\t" +  str(stations[train[0:6]]) + " Turnout \n")
             
     else:
         kCode = str(train[1])
@@ -237,7 +235,7 @@ def printtrain(newtrain):
         elif kCode == '4':
             sys.stdout.write("K4 - On RT In Area")
         elif kCode == '7':
-            sys.stdout.write("K77 - On Station")
+            sys.stdout.write("K7 - On Station")
         elif kCode == '6':
             sys.stdout.write('K66 - Non Property Fire')
         elif kCode == '9':
@@ -245,7 +243,6 @@ def printtrain(newtrain):
                 sys.stdout.write("K99 - Fire Well Involved on Arrival")
             else:
                 sys.stdout.write("K9 - On Station(" + str("".join(newtrain[2:4]))+")")
-    sys.stdout.write('\n')
 
 
 # this is to actually play the file

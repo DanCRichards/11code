@@ -1,0 +1,19 @@
+
+  <Object type="System.Windows.Forms.Form, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="form1" children="Controls">
+    <Object type="System.Windows.Forms.RichTextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" name="richTextBox1" children="Controls">
+      <Property name="Text">
+      </Property>
+      <Property name="TabIndex">0</Property>
+      <Property name="Name">richTextBox1</Property>
+      <Property name="Size">100, 96</Property>
+      <Property name="DataBindings">
+        <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+      </Property>
+      <Property name="Location">127, 80</Property>
+    </Object>
+    <Property name="Name">form1</Property>
+    <Property name="DataBindings">
+      <Property name="DefaultDataSourceUpdateMode">OnValidation</Property>
+    </Property>
+    <Property name="ClientSize">985, 423</Property>
+  </Object>
