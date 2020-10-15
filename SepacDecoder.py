@@ -190,7 +190,7 @@ def cleantrain(train):
         atrain = newtrain[:6]
         btrain = newtrain[6:]
         printtrain(newtrain)
-    elif len(newtrain) == 6:  #FOR STATION TONES / FCOM ACK
+    elif len(newtrain) >= 5:  #FOR STATION TONES / FCOM ACK
         printtrain(newtrain)
         
 
@@ -215,7 +215,12 @@ def printtrain(newtrain):
                 f.write(train[0:6] + ",Unknown Appliance\n")
                 appliances[train[0:5]] = 'Unknown'
                 f.close()
-            sys.stdout.write(dt_string + "\t" + "Appliance: " + str(appliances[train[0:5]]))
+            messageSwitcher = {"4":"Turnout", "C":"Routine Call", "B":"Prioity Call"}
+            message =" "
+            if len(train) >= 6:
+                if train[5] in messageSwitcher:
+                    message = messageSwitcher[train[5]] + "\t"
+            print(dt_string + "\t" + "Appliance: " + str(appliances[train[0:5]]) + message + "\t" + train)
         if train[0] == '1':
             #Station Tone
             if train[0:6] not in stations:
@@ -224,7 +229,7 @@ def printtrain(newtrain):
                 f.write(train[0:6] + ",Unknown Station\n")
                 stations[train[0:6]] = "Unknown station"
                 f.close()
-            sys.stdout.write(dt_string + "\t" +  str(stations[train[0:6]]) + " Turnout \n")
+            print(dt_string + "\t" +  str(stations[train[0:6]]) + " Turnout ")
             
     else:
         kCode = str(train[1])
