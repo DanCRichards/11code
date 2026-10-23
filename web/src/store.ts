@@ -39,6 +39,7 @@ export interface PriorityAlarmSettings {
   scope: "off" | "any" | "chosen";
   stations: string[];
   appliances: string[];
+  autoClear: number; // seconds until the alarm clears by itself; 0 = wait for Acknowledge
 }
 
 export interface MyBoardSettings {
@@ -52,6 +53,7 @@ export interface AlarmSettings {
   appliances: string[]; // these trucks, or a whole-station call at their station
   sound: boolean;
   repeat: boolean; // keep sounding until acknowledged
+  autoClear: number; // seconds until the alarm clears by itself; 0 = wait for Acknowledge
 }
 
 export interface Settings {
@@ -135,8 +137,8 @@ const DEFAULT_SETTINGS: Settings = {
   alerts: { prioritySound: true, watchedSound: true, notify: false, unmuteSeconds: 45 },
   watched: [],
   myBoard: { appliances: [], size: "large" },
-  alarm: { stations: [], appliances: [], sound: true, repeat: true },
-  priorityAlarm: { scope: "off", stations: [], appliances: [] },
+  alarm: { stations: [], appliances: [], sound: true, repeat: true, autoClear: 0 },
+  priorityAlarm: { scope: "off", stations: [], appliances: [], autoClear: 0 },
   muted: false,
   showMap: null,
   dismissed: [],

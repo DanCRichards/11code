@@ -1,4 +1,4 @@
-import { STATE_LABEL } from "../core/derive";
+import { stateText } from "../core/derive";
 import { demoActions } from "../sources/controller";
 import { store, useStore } from "../store";
 import { ago, clockTime, EventPill, Sheet, StatePill, stateVar, useBoard } from "./common";
@@ -32,7 +32,7 @@ export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClo
               <li key={a.id}>
                 <button className="item" onClick={() => nav.appliance(a.id)}>
                   <span className="callsign" style={{ color: stateVar(ab.state) }}>{a.callsign}</span>
-                  <span className="what"><b>{STATE_LABEL[ab.state]}</b><span>{ab.lastHeard ? `heard ${ago(ab.lastHeard, now)}` : "not heard yet"}</span></span>
+                  <span className="what"><b>{stateText(ab.state)}</b><span>{ab.lastHeard ? `heard ${ago(ab.lastHeard, now)}` : "not heard yet"}</span></span>
                   <StatePill state={ab.state} />
                 </button>
               </li>

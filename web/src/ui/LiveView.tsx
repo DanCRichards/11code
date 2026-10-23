@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { isCommitted, nzDay, STATE_LABEL } from "../core/derive";
+import { isCommitted, nzDay, stateText } from "../core/derive";
 import { groupJobs, type Job } from "../core/incidents";
 import { applianceName, type Index } from "../core/interpret";
 import type { ApplianceState, Interpreted } from "../core/types";
@@ -46,7 +46,7 @@ export function LiveView({ nav }: { nav: Nav }) {
           <span className="banner-icon" aria-hidden="true">!</span>
           <div className="grow">
             <b>Priority call</b>
-            <div>{prio.title} · {ago(prio.call.time, now)} <span className="mono small">{prio.call.code}</span></div>
+            <div>{prio.title} · {ago(prio.call.time, now)}</div>
           </div>
           <button onClick={() => prio.applianceId && nav.appliance(prio.applianceId)}>View</button>
           <button onClick={() => setHiddenPriority(prio.call.id)} aria-label="Dismiss">Hide</button>
@@ -108,7 +108,7 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
           const a = ix.appliance.get(id), st = board.appliances.get(id)?.state ?? "not-heard";
           return a && (
             <button key={id} className="chipunit" style={{ borderColor: stateVar(st) }} onClick={() => nav.appliance(id)}>
-              <b>{a.callsign}</b><span style={{ color: stateVar(st) }}>{STATE_LABEL[st]}</span>
+              <b>{a.callsign}</b><span style={{ color: stateVar(st) }}>{stateText(st)}</span>
             </button>
           );
         })}

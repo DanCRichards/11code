@@ -85,6 +85,18 @@ describe("turnout alarm", () => {
   });
 });
 
+describe("K codes", () => {
+  it("labels truck statuses with their K code", async () => {
+    const { stateText } = await import("./derive");
+    expect(stateText("responding")).toBe("K1 Responding");
+    expect(stateText("at-incident")).toBe("K2 At incident");
+    expect(stateText("out-of-area")).toBe("K3 Out of area");
+    expect(stateText("available-radio")).toBe("K4 Available (radio)");
+    expect(stateText("on-station")).toBe("K7 On station");
+    expect(stateText("turned-out")).toBe("Turned out");
+  });
+});
+
 describe("priority alarm and un-mute", () => {
   it("matches any truck, or only chosen trucks and stations", async () => {
     const { priorityMatch } = await import("../ui/Alarm");

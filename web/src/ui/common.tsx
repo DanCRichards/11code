@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NAMES, TONES, type Slot } from "../decoder/selcall";
-import { deriveBoard, STATE_LABEL } from "../core/derive";
+import { deriveBoard, stateText } from "../core/derive";
 import { buildIndex, interpretAll } from "../core/interpret";
 import type { ApplianceState, Interpreted } from "../core/types";
 import { useStore } from "../store";
@@ -51,11 +51,11 @@ export const stateVar = (s: ApplianceState) => `var(--${{
 }[s]})`;
 
 export function StatePill({ state }: { state: ApplianceState }) {
-  return <span className={`pill st-${state}`}>{STATE_LABEL[state]}</span>;
+  return <span className={`pill st-${state}`}>{stateText(state)}</span>;
 }
 
 export function EventPill({ ev }: { ev: Interpreted }) {
-  const label = ev.type === "status" && ev.state ? STATE_LABEL[ev.state] : ev.label;
+  const label = ev.type === "status" && ev.state ? stateText(ev.state) : ev.label;
   const cls = ev.type === "status" && ev.state ? `st-${ev.state}` : `ev-${ev.type}`;
   return <span className={`pill ${cls}`}>{label}</span>;
 }

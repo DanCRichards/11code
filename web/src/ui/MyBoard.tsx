@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { STATE_LABEL } from "../core/derive";
+import { stateText } from "../core/derive";
 import type { ApplianceState } from "../core/types";
 import { store, useStore } from "../store";
 import { ago, Seg, Sheet, stateVar, useBoard } from "./common";
@@ -82,9 +82,9 @@ export function MyBoardView({ nav }: { nav: Nav }) {
                       return (
                         <button key={id} className={`mb-cell${turnedOut ? " flash" : ""}${stationCalled ? " pulse" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
                           style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => nav.appliance(id)}
-                          aria-label={`${a.callsign} ${STATE_LABEL[ab.state]}`}>
+                          aria-label={`${a.callsign} ${stateText(ab.state)}`}>
                           <b>{a.callsign}</b>
-                          <span className="mb-state">{turnedOut ? "Turnout" : STATE_LABEL[ab.state]}</span>
+                          <span className="mb-state">{turnedOut ? "Turnout" : stateText(ab.state)}</span>
                           <span className="mb-ago">{ab.lastHeard ? ago(ab.lastHeard, now).replace(" ago", "") : "—"}{priority ? " · PRIORITY" : ""}</span>
                         </button>
                       );
@@ -95,7 +95,7 @@ export function MyBoardView({ nav }: { nav: Nav }) {
             })}
           </div>
           <div className="mb-legend">
-            {LEGEND.map((s) => <span key={s}><i style={{ background: stateVar(s) }} />{STATE_LABEL[s]}</span>)}
+            {LEGEND.map((s) => <span key={s}><i style={{ background: stateVar(s) }} />{stateText(s)}</span>)}
           </div>
         </div>
       )}
@@ -221,14 +221,14 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
               style={{ ["--c" as string]: stateVar(ab.state) }}>
               <span className="tv-station">{ix.station.get(a.stationId)?.name}</span>
               <b className="tv-call">{a.callsign}</b>
-              <span className="tv-state">{turnedOut ? "Turnout" : priority ? "Priority call" : STATE_LABEL[ab.state]}</span>
+              <span className="tv-state">{turnedOut ? "Turnout" : priority ? "Priority call" : stateText(ab.state)}</span>
               <span className="tv-ago">{ab.lastHeard ? ago(ab.lastHeard, now) : ""}</span>
             </div>
           );
         })}
       </div>
       <footer className="tv-legend">
-        {LEGEND.filter((s) => s !== "status-unknown").map((s) => <span key={s}><i style={{ background: stateVar(s) }} />{STATE_LABEL[s]}</span>)}
+        {LEGEND.filter((s) => s !== "status-unknown").map((s) => <span key={s}><i style={{ background: stateVar(s) }} />{stateText(s)}</span>)}
       </footer>
       <button className={`tv-exit${chrome ? "" : " hidden"}`} onClick={onExit}>Exit TV mode</button>
     </div>

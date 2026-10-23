@@ -618,6 +618,20 @@ function SourcePanel() {
   );
 }
 
+const AUTO_CLEAR: [number, string][] = [[0, "When acknowledged"], [15, "15s"], [30, "30s"], [60, "1 min"]];
+
+/** How an alarm goes away: wait for Acknowledge, or clear by itself. */
+function AutoClear({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
+  return (
+    <div className="field">
+      <span>{label}</span>
+      <div className="seg fit" role="group" aria-label={label}>
+        {AUTO_CLEAR.map(([v, l]) => <button key={v} aria-pressed={(value || 0) === v} onClick={() => onChange(v)}>{l}</button>)}
+      </div>
+    </div>
+  );
+}
+
 function AlertsPanel() {
   const alerts = useStore((s) => s.settings.alerts);
   const alarm = useStore((s) => s.settings.alarm);
@@ -652,9 +666,9 @@ function AlertsPanel() {
         <p className="note">Phones vibrate for priority calls where the browser allows it. Alerts only fire for calls heard while the page is open.</p>
       </section>
       <section className="panel">
-        <div className="alarm-preview turnout" aria-hidden="true"><b>TURNOUT</b><span>Grey Lynn 261</span><i>Acknowledge</i></div>
+        <div className="alarm-preview turnout" aria-hidden="true"><b>TURNOUT</b><strong>261</strong><span>Grey Lynn</span></div>
         <h2>The big red screen: turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
-        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm and sounds until you acknowledge it. A whole-station call alarms for every chosen truck at that station.</p>
+        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm showing the truck (or the station and all its trucks). A whole-station call alarms for every chosen truck at that station.</p>
         {(alarm.stations.length > 0 || alarm.appliances.length > 0) && (
           <div className="chips" style={{ flexWrap: "wrap" }}>
             {alarm.stations.map((id) => <button key={id} className="chip" onClick={() => store.alarm({ stations: alarm.stations.filter((x) => x !== id) })}>{cb.stations.find((s) => s.id === id)?.name} (station) ×</button>)}
@@ -669,7 +683,8 @@ function AlertsPanel() {
           <button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })); }}>Test the alarm</button>
         </div>
         <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Sound the alarm</label>
-        <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until I acknowledge it (up to 3 minutes)</label>
+        <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until it clears (up to 3 minutes)</label>
+        <AutoClear value={alarm.autoClear} onChange={(v) => store.alarm({ autoClear: v })} label="Turnout alarm goes away" />
         {picking && (
           <Sheet title="Turnout alarm" sub="Choose whole stations, or just some trucks" onClose={() => setPicking(false)}>
             <UnitPicker stationMode="toggle" appliances={alarm.appliances} stations={alarm.stations} onChange={(n) => store.alarm(n)} />
@@ -678,9 +693,9 @@ function AlertsPanel() {
         )}
       </section>
       <section className="panel">
-        <div className="alarm-preview priority" aria-hidden="true"><b>PRIORITY CALL</b><span>Grey Lynn 261</span><i>Acknowledge</i></div>
+        <div className="alarm-preview priority" aria-hidden="true"><b>PRIORITY CALL</b><strong>261</strong><span>Grey Lynn</span></div>
         <h2>The big yellow screen: priority alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
-        <p className="note">A full-screen priority alarm with its own siren, showing which truck made the call, until you acknowledge it. Every priority call still gets the banner and chime above.</p>
+        <p className="note">A full-screen priority alarm with its own siren, showing which truck made the call. Every priority call still gets the banner and chime above.</p>
         <div className="seg" role="group" aria-label="Priority alarm for">
           <button aria-pressed={pa.scope === "off"} onClick={() => store.priorityAlarm({ scope: "off" })}>Off</button>
           <button aria-pressed={pa.scope === "any"} onClick={() => store.priorityAlarm({ scope: "any" })}>Any truck</button>
@@ -696,6 +711,7 @@ function AlertsPanel() {
             <div className="row"><button className="btn" onClick={() => setPickingPrio(true)}>Choose stations and trucks</button></div>
           </>
         )}
+        {pa.scope !== "off" && <AutoClear value={pa.autoClear} onChange={(v) => store.priorityAlarm({ autoClear: v })} label="Priority alarm goes away" />}
         <div className="row"><button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })); }}>Test the priority alarm</button></div>
         {pickingPrio && (
           <Sheet title="Priority alarm" sub="Whole stations count every truck there" onClose={() => setPickingPrio(false)}>

@@ -126,3 +126,11 @@ export const STATE_LABEL: Record<ApplianceState, string> = {
   "on-station": "On station",
   "status-unknown": "Unknown status",
 };
+
+/** FENZ K codes for the statuses a truck sends (see CLAUDE.md). */
+export const K_CODE: Partial<Record<ApplianceState, string>> = {
+  responding: "K1", "at-incident": "K2", "out-of-area": "K3", "available-radio": "K4", "on-station": "K7",
+};
+
+/** A truck's status with its K code, e.g. "K1 Responding". */
+export const stateText = (s: ApplianceState) => (K_CODE[s] ? `${K_CODE[s]} ${STATE_LABEL[s]}` : STATE_LABEL[s]);

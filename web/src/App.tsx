@@ -110,7 +110,7 @@ export function App() {
         {tab === "data" && <DataView sub={filter} />}
       </main>
       <PlayerBar />
-      <AlarmOverlay hits={alarm.hits} onAck={alarm.ack} />
+      <AlarmOverlay hits={alarm.hits} onAck={alarm.ack} ix={ix} />
       {sheet?.kind === "station" && <StationSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
       {sheet?.kind === "appliance" && <ApplianceSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
     </div>

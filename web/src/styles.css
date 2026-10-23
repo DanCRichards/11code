@@ -98,6 +98,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .seg { display: inline-grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .seg button { border: 0; border-left: 1px solid var(--line); background: var(--panel); padding: 6px 10px; min-height: 34px; cursor: pointer; font-size: 13px; white-space: nowrap; }
 .seg button:first-child { border-left: 0; }
+.seg.fit { grid-auto-columns: auto; justify-self: start; max-width: 100%; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); font-weight: 600; }
 
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
@@ -378,6 +379,13 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   background: #fff; color: #b3140c; padding: 6px 22px 2px; border-radius: 8px; }
 .alarm-title { margin: 0; font-family: var(--display); font-size: clamp(34px, 9vw, 72px); font-weight: 700; line-height: 1; text-transform: uppercase; text-wrap: balance; }
 .alarm-meta { font-size: 18px; opacity: .9; }
+.alarm-who { display: grid; justify-items: center; gap: 6px; }
+.alarm-unit { font-family: var(--display); font-size: clamp(110px, 34vw, 280px); font-weight: 700; line-height: .82; letter-spacing: .01em; }
+.alarm-unit.station { font-size: clamp(52px, 15vw, 140px); line-height: .9; text-transform: uppercase; text-wrap: balance; }
+.alarm-station { font-family: var(--display); font-size: clamp(30px, 8vw, 64px); font-weight: 700; line-height: 1; text-transform: uppercase; }
+.alarm-trucks { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.alarm-trucks i { font-style: normal; font-family: var(--display); font-size: clamp(34px, 9vw, 72px); font-weight: 700; line-height: 1;
+  border: 3px solid currentColor; border-radius: 10px; padding: 4px 16px 0; }
 .alarm-more { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 18px; font-weight: 600; }
 .alarm-ack { margin-top: 10px; border: 3px solid #fff; background: #fff; color: #b3140c; font-family: var(--display); font-size: 28px; font-weight: 700;
   text-transform: uppercase; letter-spacing: .06em; padding: 14px 40px; border-radius: 10px; cursor: pointer; min-width: 260px; }
@@ -447,6 +455,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   box-shadow: 0 4px 14px rgba(0,0,0,.18); }
 .alarm-preview b { font-size: 15px; letter-spacing: .05em; padding: 1px 6px; border-radius: 3px; }
 .alarm-preview span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.alarm-preview strong { font-size: 30px; line-height: .9; }
 .alarm-preview i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; margin-top: 2px; }
 .alarm-preview.turnout { background: #c8241c; color: #fff; } .alarm-preview.turnout b, .alarm-preview.turnout i { background: #fff; color: #c8241c; }
 .alarm-preview.priority { background: #f4c300; color: #141000; } .alarm-preview.priority b, .alarm-preview.priority i { background: #141000; color: #f4c300; }
