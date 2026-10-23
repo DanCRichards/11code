@@ -228,6 +228,14 @@ export function fitClusters(counts: number[], w: number, h: number, gap = 14, as
   return { th: Math.floor(lo), tw: Math.floor(tw), cols };
 }
 
+/** Phone-sized TV mode: each station card is full width with up to two cells per row, and the page scrolls. */
+export function scrollFit(counts: number[], w: number): ClusterFit {
+  const cols = counts.map((n) => Math.min(Math.max(1, n), 2));
+  // card width = 2 cells + 1 inner gap + 2 paddings, where gap and padding are 0.08 × cell height
+  const th = Math.min(150, Math.floor(w / (1.3 * 2 + 0.08 * 3)));
+  return { th, tw: Math.floor(th * 1.3), cols };
+}
+
 /** Full-window board for a TV: every chosen truck as big as the screen allows. */
 export function TvBoard({ onExit }: { onExit: () => void }) {
   const { ix, board, now } = useBoard();
@@ -262,7 +270,9 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
   const ids = clusters.flatMap((c) => c.ids);
   const called = clusters.map((c) => ({ sid: c.stationId, ev: board.stations.get(c.stationId)?.history.find((e) => e.type === "station-turnout") }))
     .filter((c) => c.ev && now - c.ev.call.time < flashMs);
-  const fit = fitClusters(clusters.map((c) => c.ids.length), box.w, box.h, 14);
+  // On a phone everything-on-one-screen makes tiles tiny, so scroll with usable cells instead.
+  const narrow = box.w < 700;
+  const fit = narrow ? scrollFit(clusters.map((c) => c.ids.length), box.w) : fitClusters(clusters.map((c) => c.ids.length), box.w, box.h, 14);
   const [picking, setPicking] = useState<string | null>(null);
   useEffect(() => {
     if (!picking) return;
@@ -273,7 +283,7 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
   const boardName = cfg.boards.find((b) => b.id === cfg.active)?.name;
 
   return (
-    <div className="tv" role="region" aria-label="TV board">
+    <div className={`tv${narrow ? " narrow" : ""}`} role="region" aria-label="TV board">
       <header className="tv-top">
         {called.length > 0
           ? <span className="tv-called">Station called: {called.map((c) => ix.station.get(c.sid)?.name).join(" · ")}</span>

@@ -4,11 +4,14 @@ import { setTruckStatus } from "../sources/controller";
 import { useStore } from "../store";
 import { stateVar } from "./common";
 
+// Codes you wouldn't set by hand; they still show when a truck sends them.
+const HIDDEN = new Set(["K0", "KE", "K10", "K11"]);
+
 /** Buttons for every K code in the codebook; tapping one sets the truck to it. */
 export function KCodePicker({ applianceId, current, onDone, big = false }: {
   applianceId: string; current?: string; onDone?: () => void; big?: boolean;
 }) {
-  const codes = useStore((s) => s.codebook.statusCodes).filter((c) => c.kCode);
+  const codes = useStore((s) => s.codebook.statusCodes).filter((c) => c.kCode && !HIDDEN.has(c.kCode));
   const live = useStore((s) => s.settings.mode === "backend");
   const hasKey = useStore((s) => !!s.settings.apiKey);
   const [msg, setMsg] = useState("");
