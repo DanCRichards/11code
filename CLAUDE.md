@@ -72,3 +72,6 @@ them with the real suffixes once they're confirmed from recordings.
 - Python decoder: `selcall/`, benches in `bench/`, tests `python -m pytest tests`.
 - Web app: `web/` (Vite + React + TS). `npm test`, `npx tsc --noEmit -p .`, `npm run build`.
 - Deployed to GitHub Pages from `master` by `.github/workflows/pages.yml`.
+- Production builds are obfuscated (`javascript-obfuscator` plugin in `web/vite.config.ts`).
+  The decoder is split into its own `dsp` chunk and gets renaming only, because string hiding
+  made decoding ~70x slower. `OBFUSCATE=0 npm run build` gives a readable build for debugging.
