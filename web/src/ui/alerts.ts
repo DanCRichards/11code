@@ -1,19 +1,61 @@
 import { useEffect, useRef } from "react";
 import type { Interpreted } from "../core/types";
 import { store } from "../store";
+import priorityAlarmUrl from "../assets/sounds/priority-alarm.mp3";
+import priorityChimeUrl from "../assets/sounds/priority-chime.mp3";
+import turnoutAlarmUrl from "../assets/sounds/turnout-alarm.mp3";
+import turnoutChimeUrl from "../assets/sounds/turnout-chime.mp3";
 
 let ctx: AudioContext | undefined;
 
-/** Browsers only allow audio after a tap; grab a context on the first one. */
+type Sound = "priority-alarm" | "priority-chime" | "turnout-alarm" | "turnout-chime";
+const SOUND_URLS: Record<Sound, string> = {
+  "priority-alarm": priorityAlarmUrl, "priority-chime": priorityChimeUrl,
+  "turnout-alarm": turnoutAlarmUrl, "turnout-chime": turnoutChimeUrl,
+};
+const buffers = new Map<Sound, Promise<AudioBuffer | null>>();
+
+function load(name: Sound): Promise<AudioBuffer | null> {
+  let p = buffers.get(name);
+  if (!p && ctx) {
+    const c = ctx;
+    p = fetch(SOUND_URLS[name]).then((r) => r.arrayBuffer()).then((b) => c.decodeAudioData(b)).catch(() => null);
+    buffers.set(name, p);
+  }
+  return p ?? Promise.resolve(null);
+}
+
+/** Browsers only allow audio after a tap; grab a context on the first one and load the alert sounds. */
 export function unlockAlertAudio() {
   try {
     ctx ??= new AudioContext();
     if (ctx.state === "suspended") void ctx.resume();
+    (Object.keys(SOUND_URLS) as Sound[]).forEach((n) => void load(n));
   } catch { /* no audio */ }
 }
 
-/** Two-tone alert: hi-lo three times for priority, one soft pair otherwise. */
+/** Play a sound; resolves to a stop function, or null if it couldn't load. */
+async function play(name: Sound, loop: boolean): Promise<(() => void) | null> {
+  const buf = await load(name);
+  if (!buf || !ctx) return null;
+  const src = ctx.createBufferSource(), g = ctx.createGain();
+  src.buffer = buf;
+  src.loop = loop;
+  g.gain.value = 0.9;
+  src.connect(g).connect(ctx.destination);
+  src.start();
+  return () => { try { src.stop(); } catch { /* already stopped */ } };
+}
+
+/** Short alert: the "text alert" sounds, or a synthesised two-tone if they can't load. */
 export function chime(kind: "priority" | "turnout") {
+  void play(kind === "priority" ? "priority-chime" : "turnout-chime", false).then((stop) => {
+    if (!stop) synthChime(kind);
+  });
+}
+
+/** Two-tone alert: hi-lo three times for priority, one soft pair otherwise. */
+function synthChime(kind: "priority" | "turnout") {
   if (!ctx) return;
   const [hi, lo, reps, gain] = kind === "priority" ? [1250, 880, 3, 0.22] : [988, 740, 1, 0.12];
   const t0 = ctx.currentTime + 0.02;
@@ -88,11 +130,24 @@ export function useAlerts(events: Interpreted[]) {
 
 let sirenTimer: number | undefined;
 let sirenUntil = 0;
+let stopClip: (() => void) | null = null;
+let sirenGen = 0;
 
-/** Loud alarm; repeats (for up to 3 minutes) until stopSiren(). Turnout is a
- *  slow hi-lo; priority is a faster, higher warble so they sound different. */
+/** Full alarm: the priority / station call-out ringtone, looping (for up to 3
+ *  minutes) until stopSiren() when `repeat`; synthesised if the sound can't load. */
 export function siren(repeat: boolean, kind: "turnout" | "priority" = "turnout") {
   stopSiren();
+  const gen = ++sirenGen;
+  void play(kind === "priority" ? "priority-alarm" : "turnout-alarm", repeat).then((stop) => {
+    if (gen !== sirenGen) { stop?.(); return; } // acknowledged while loading
+    if (!stop) { synthSiren(repeat, kind); return; }
+    stopClip = stop;
+    if (repeat) sirenTimer = window.setTimeout(stopSiren, 3 * 60_000);
+  });
+}
+
+/** Synthesised fallback. Turnout is a slow hi-lo; priority a faster, higher warble. */
+function synthSiren(repeat: boolean, kind: "turnout" | "priority") {
   if (!ctx) return;
   const [hi, lo, step, n] = kind === "priority" ? [1480, 1040, 0.16, 12] : [1180, 780, 0.3, 6];
   const burst = () => {
@@ -122,6 +177,10 @@ export function siren(repeat: boolean, kind: "turnout" | "priority" = "turnout")
 }
 
 export function stopSiren() {
+  sirenGen++;
   clearInterval(sirenTimer);
+  clearTimeout(sirenTimer);
   sirenTimer = undefined;
+  stopClip?.();
+  stopClip = null;
 }
