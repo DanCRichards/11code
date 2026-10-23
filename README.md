@@ -40,7 +40,7 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 
 ### GitHub Pages
 
-`.github/workflows/pages.yml` builds `web/` on each push to `master` and publishes it to the `gh-pages` branch. To serve it, go to the repository's **Settings → Pages** and set **Source** to **Deploy from a branch**, branch **gh-pages**. The Pages site runs in demo mode. To point it at your backend, open **Codebook → Data source**, or add `?backend=https://your-backend` to the URL. Browsers only let an https page talk to an https backend.
+`.github/workflows/pages.yml` builds `web/` and deploys it on each push to `master` (repository **Settings → Pages → Source: GitHub Actions**). The Pages site runs in demo mode. To point it at your backend, open **Codebook → Data source**, or add `?backend=https://your-backend` to the URL. Browsers only let an https page talk to an https backend.
 
 ## What the decoder knows about FENZ SelCall
 

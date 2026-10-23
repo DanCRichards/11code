@@ -1,7 +1,6 @@
 name: Deploy board to GitHub Pages
 
-# Builds web/ and publishes it to the gh-pages branch. In the repository's
-# Settings -> Pages, set Source to "Deploy from a branch", branch gh-pages.
+# Settings -> Pages -> Source: GitHub Actions.
 on:
   push:
     branches: [master]
@@ -9,14 +8,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,10 +30,16 @@ jobs:
         working-directory: web
       - run: npm test && npm run build
         working-directory: web
-      - run: touch web/dist/.nojekyll
-      - uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: web/dist
-          force_orphan: true
-          commit_message: Deploy board
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
