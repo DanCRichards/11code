@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Turnout Board Looks</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Archivo+Narrow:wght@500;700&family=Barlow+Condensed:wght@500;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f4f6; --surface: #ffffff; --fg: #111827; --muted: #5b6472; --line: #dde1e7; --accent: #c8102e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0d1117; --surface: #161b22; --fg: #e6e8eb; --muted: #9aa4b2; --line: #2a313b; --accent: #ff5a6e; }
+}
+:root[data-theme="dark"] { --bg: #0d1117; --surface: #161b22; --fg: #e6e8eb; --muted: #9aa4b2; --line: #2a313b; --accent: #ff5a6e; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 16px 64px; }
+.intro h1 { font: 700 34px/1.1 "Barlow Condensed", sans-serif; letter-spacing: .01em; margin: 0 0 6px; }
+.intro p { color: var(--muted); max-width: 64ch; margin: 0 0 6px; }
+.jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 28px; }
+.jump a { text-decoration: none; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-weight: 500; font-size: 14px; }
+.jump a:hover { border-color: var(--accent); }
+.jump b { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+
+.dir { margin: 0 0 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.dir-head { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
+.dir-head h2 { margin: 0; font: 700 26px/1.1 "Barlow Condensed", sans-serif; }
+.dir-head .tag { color: var(--muted); font-size: 14px; grid-column: 1; }
+.dir-head .letter { grid-row: 1 / span 2; grid-column: 2; align-self: center; font: 700 40px/1 "Barlow Condensed", sans-serif; color: var(--muted); opacity: .5; }
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 14px 20px 18px; border-top: 1px solid var(--line); font-size: 14px; }
+.notes h4 { margin: 0 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.notes ul { margin: 0; padding-left: 18px; }
+@media (max-width: 760px) { .notes { grid-template-columns: 1fr; } }
+
+/* ---------- the specimen canvas: each direction sets these ---------- */
+.canvas {
+  --c-bg: #000; --c-panel: #111; --c-panel2: #1a1a1a; --c-fg: #fff; --c-muted: #999; --c-line: #333;
+  --s-out: red; --s-resp: orange; --s-inc: purple; --s-ooa: teal; --s-avail: blue; --s-stn: green; --s-ink: #fff;
+  --pri: #ffd400; --pri-ink: #111;
+  --f-display: sans-serif; --f-body: sans-serif; --f-mono: monospace;
+  --radius: 8px;
+  background: var(--c-bg); color: var(--c-fg); font-family: var(--f-body);
+  padding: 18px; display: grid; gap: 16px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-areas: "app tv" "app alarm" "pal type";
+}
+@media (max-width: 860px) { .canvas { grid-template-columns: 1fr; grid-template-areas: "app" "tv" "alarm" "pal" "type"; } }
+.cap { font: 600 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--c-muted); margin: 0 0 8px; }
+
+.app { grid-area: app; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: var(--radius); overflow: hidden; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--c-line); background: var(--c-panel2); }
+.bar .name { font: 700 20px/1 var(--f-display); letter-spacing: .02em; }
+.bar .live { margin-left: auto; font: 500 12px/1 var(--f-mono); color: var(--c-muted); display: flex; align-items: center; gap: 6px; }
+.bar .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--s-stn); }
+.tabs { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--c-line); font-size: 13px; }
+.tabs span { padding: 9px 10px; color: var(--c-muted); }
+.tabs span.on { color: var(--c-fg); box-shadow: inset 0 -2px 0 var(--s-out); font-weight: 600; }
+.app-body { padding: 14px; display: grid; gap: 14px; }
+
+.pbanner { display: flex; gap: 10px; align-items: center; background: var(--pri); color: var(--pri-ink); border-radius: var(--radius); padding: 9px 12px; font-weight: 600; font-size: 14px; }
+.pbanner .k { font: 700 12px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; }
+.pbanner .t { margin-left: auto; font-family: var(--f-mono); font-size: 12px; }
+
+.job { border: 1px solid var(--c-line); border-radius: var(--radius); padding: 12px 14px; background: var(--c-panel2); border-left: 5px solid var(--s-out); }
+.job .k { font: 600 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--s-out); }
+.job h3 { margin: 6px 0 4px; font: 700 24px/1.1 var(--f-display); }
+.job .meta { color: var(--c-muted); font-size: 13px; font-family: var(--f-mono); }
+.job .units { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.chip { font: 600 13px/1 var(--f-mono); padding: 6px 9px; border-radius: calc(var(--radius) * .6); background: var(--st); color: var(--s-ink); }
+
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tile { background: var(--st); color: var(--s-ink); border-radius: var(--radius); padding: 10px 10px 9px; min-height: 76px; display: flex; flex-direction: column; justify-content: space-between; }
+.tile .cs { font: 700 26px/1 var(--f-display); }
+.tile .stn { font-size: 12px; opacity: .9; }
+.tile .st { font: 600 10.5px/1.2 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; }
+
+.tvwrap { grid-area: tv; }
+.tv { background: var(--c-bg); border: 1px solid var(--c-line); border-radius: var(--radius); padding: 10px; aspect-ratio: 16 / 9; display: grid; grid-template-rows: auto 1fr; gap: 8px; }
+.tv-top { display: flex; justify-content: space-between; align-items: center; font: 600 12px/1 var(--f-mono); color: var(--c-muted); }
+.tv-top .called { background: var(--s-out); color: var(--s-ink); padding: 5px 8px; border-radius: 4px; letter-spacing: .08em; text-transform: uppercase; }
+.tv-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 8px; min-height: 0; }
+.tv-grid .tile { min-height: 0; padding: 8px 10px; }
+.tv-grid .cs { font-size: clamp(26px, 4.2vw, 46px); }
+
+.alarmwrap { grid-area: alarm; }
+.alarm { border-radius: var(--radius); padding: 18px; background: var(--s-out); color: var(--s-ink); display: grid; gap: 6px; justify-items: start; position: relative; overflow: hidden; }
+.alarm .k { font: 700 12px/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; }
+.alarm .t { font: 700 34px/1 var(--f-display); }
+.alarm .m { font: 500 13px/1 var(--f-mono); opacity: .9; }
+.alarm button { margin-top: 8px; font: 700 14px/1 var(--f-body); padding: 10px 16px; border-radius: var(--radius); border: 0; background: var(--s-ink); color: var(--s-out); cursor: pointer; }
+
+.pal { grid-area: pal; }
+.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+.sw div { border-radius: calc(var(--radius) * .6); overflow: hidden; border: 1px solid var(--c-line); font: 500 10px/1.3 var(--f-mono); color: var(--c-muted); background: var(--c-panel); }
+.sw i { display: block; height: 34px; }
+.sw span { display: block; padding: 4px 6px; }
+
+.type { grid-area: type; background: var(--c-panel); border: 1px solid var(--c-line); border-radius: var(--radius); padding: 14px; }
+.type .d { font: 700 38px/1 var(--f-display); margin: 0 0 6px; }
+.type .b { margin: 0 0 6px; font-size: 15px; }
+.type .mo { font: 400 13px/1.4 var(--f-mono); color: var(--c-muted); margin: 0; }
+
+/* ---------- A. Station Board (current) ---------- */
+.dA {
+  --c-bg: #0f141b; --c-panel: #161d27; --c-panel2: #1c2532; --c-fg: #e8edf3; --c-muted: #8d9aab; --c-line: #273243;
+  --s-out: #e5333b; --s-resp: #f29d1f; --s-inc: #c38bf7; --s-ooa: #2bb5a8; --s-avail: #3d8bf2; --s-stn: #3fbf6a; --s-ink: #0d1117;
+  --pri: #ffcf33; --pri-ink: #1b1400;
+  --f-display: "Barlow Condensed", sans-serif; --f-body: "IBM Plex Sans", sans-serif; --f-mono: "IBM Plex Mono", monospace;
+  --radius: 8px;
+}
+.dA .tile .cs { font-weight: 700; }
+.dA .tile:first-child, .dA .chip.out { color: #fff; }
+
+/* ---------- B. Hi-Vis Livery ---------- */
+.dB {
+  --c-bg: #0b0b0c; --c-panel: #151517; --c-panel2: #1d1d20; --c-fg: #ffffff; --c-muted: #a3a3a8; --c-line: #2e2e33;
+  --s-out: #e10600; --s-resp: #ff8a00; --s-inc: #9b30ff; --s-ooa: #00b3a4; --s-avail: #1f6fff; --s-stn: #c6ff00; --s-ink: #0b0b0c;
+  --pri: #ffd400; --pri-ink: #0b0b0c;
+  --f-display: "Archivo", sans-serif; --f-body: "Archivo Narrow", sans-serif; --f-mono: "Archivo Narrow", sans-serif;
+  --radius: 2px;
+}
+.dB .bar { background: #ffd400; color: #0b0b0c; border-bottom: 0; }
+.dB .bar .name { font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+.dB .bar .live { color: #0b0b0c; }
+.dB .bar .live i { background: #e10600; }
+.dB .bar::after { content: ""; display: block; width: 70px; height: 20px; margin-left: 10px;
+  background: repeating-linear-gradient(-45deg, #e10600 0 8px, #ffd400 8px 16px); }
+.dB .tile .cs, .dB .job h3, .dB .alarm .t, .dB .type .d { font-weight: 900; text-transform: uppercase; }
+.dB .tile { border-top: 6px solid rgba(0,0,0,.35); }
+.dB .tile[data-s="out"], .dB .tile[data-s="inc"], .dB .tile[data-s="avail"], .dB .chip.out { color: #fff; }
+.dB .job { border-left: 0; border-top: 6px solid transparent;
+  border-image: repeating-linear-gradient(-45deg, #e10600 0 10px, #ffd400 10px 20px) 6; }
+.dB .alarm { color: #fff; padding-top: 30px; }
+.dB .alarm::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 14px;
+  background: repeating-linear-gradient(-45deg, #ffd400 0 12px, #0b0b0c 12px 24px); }
+.dB .alarm button { background: #ffd400; color: #0b0b0c; }
+.dB .tv-top .called { color: #fff; }
+.dB .cap { letter-spacing: .16em; }
+
+/* ---------- C. Scanner LCD ---------- */
+.dC {
+  --c-bg: #0a0f0a; --c-panel: #0f1a10; --c-panel2: #122014; --c-fg: #b6ffb0; --c-muted: #5f9a5c; --c-line: #1f3a22;
+  --s-out: #ff4d3d; --s-resp: #ffb02e; --s-inc: #d68cff; --s-ooa: #3fe0d0; --s-avail: #6fb5ff; --s-stn: #7dff6a; --s-ink: #061006;
+  --pri: #ffb02e; --pri-ink: #140b00;
+  --f-display: "VT323", monospace; --f-body: "Share Tech Mono", monospace; --f-mono: "Share Tech Mono", monospace;
+  --radius: 3px;
+}
+.dC .app, .dC .tv, .dC .type { box-shadow: inset 0 0 40px rgba(125,255,106,.06); }
+.dC .bar .name, .dC .job h3, .dC .type .d { text-shadow: 0 0 8px rgba(125,255,106,.55); font-weight: 400; }
+.dC .bar .name { font-size: 26px; }
+.dC .job h3 { font-size: 30px; }
+.dC .tile { background: transparent; color: var(--st); border: 1.5px solid var(--st); box-shadow: 0 0 12px -4px var(--st), inset 0 0 18px -10px var(--st); }
+.dC .tile .cs { font-weight: 400; font-size: 34px; text-shadow: 0 0 8px var(--st); }
+.dC .tv-grid .cs { font-size: clamp(34px, 5vw, 58px); }
+.dC .tile[data-s="out"] { background: var(--st); color: var(--s-ink); text-shadow: none; }
+.dC .tile[data-s="out"] .cs { text-shadow: none; }
+.dC .chip { background: transparent; color: var(--st); border: 1px solid var(--st); }
+.dC .job { border-left-color: var(--s-out); }
+.dC .alarm { background: #1a0705; color: var(--s-out); border: 2px solid var(--s-out); box-shadow: 0 0 24px -6px var(--s-out); }
+.dC .alarm .t { font-weight: 400; font-size: 48px; text-shadow: 0 0 10px rgba(255,77,61,.7); }
+.dC .alarm button { background: var(--s-out); color: #1a0705; }
+.dC .canvas-scan { position: relative; }
+.dC .tv { background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+.dC .type .d { font-size: 52px; }
+
+/* ---------- D. Dan Richards Design System (editorial) ---------- */
+.dD {
+  --c-bg: #f4ecdd; --c-panel: #faf4e6; --c-panel2: #fffaf0; --c-fg: #1b1130; --c-muted: #6e5e84; --c-line: #d6cbb6;
+  --s-out: #c8567e; --s-resp: #e0a93b; --s-inc: #6b3dd9; --s-ooa: #4da89e; --s-avail: #816c97; --s-stn: #2e1a4a; --s-ink: #faf4e6;
+  --pri: #2e1a4a; --pri-ink: #f4ecdd;
+  --f-display: "Instrument Serif", serif; --f-body: "DM Sans", sans-serif; --f-mono: "DM Mono", monospace;
+  --radius: 10px;
+}
+.dD .app, .dD .type { box-shadow: 0 1px 2px rgba(31,18,53,.04), 0 1px 1px rgba(31,18,53,.03); }
+.dD .bar .name, .dD .job h3, .dD .tile .cs, .dD .alarm .t, .dD .type .d { font-weight: 400; }
+.dD .bar .name { font-size: 24px; }
+.dD .bar .name em, .dD h3 em, .dD .type .d em { color: #6b3dd9; }
+.dD .alarm .t em { color: #dcd0ff; }
+.dD .job h3 { font-size: 30px; }
+.dD .tile .cs { font-size: 32px; }
+.dD .tv-grid .cs { font-size: clamp(32px, 5vw, 58px); }
+.dD .tile[data-s="resp"] { color: #1b1130; }
+.dD .cap { color: #6e5e84; letter-spacing: .2em; display: flex; align-items: center; gap: 8px; }
+.dD .cap::before { content: ""; width: 28px; height: 1.5px; background: #6b3dd9; }
+.dD .tabs span.on { box-shadow: inset 0 -1.5px 0 #6b3dd9; }
+.dD .job { border-left-width: 1px; border-top: 3px solid var(--s-out); background: var(--c-panel2); }
+.dD .alarm { background: #2e1a4a; color: #f4ecdd; }
+.dD .alarm .k { color: #e8a3bd; }
+.dD .alarm button { background: #c8567e; color: #faf4e6; border-radius: 6px; }
+.dD .alarm::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: #c8567e; }
+.dD .type .d { font-size: 46px; letter-spacing: -.02em; }
+.dD .tv { background: #2e1a4a; border-color: #4a3270; }
+.dD .tv-top { color: #aba1bd; }
+.dD .tv .tile[data-s="stn"] { background: #574272; }
+
+.dir .canvas .tile[data-s="out"] { --st: var(--s-out); }
+.dir .canvas [data-s="resp"] { --st: var(--s-resp); }
+.dir .canvas [data-s="inc"] { --st: var(--s-inc); }
+.dir .canvas [data-s="ooa"] { --st: var(--s-ooa); }
+.dir .canvas [data-s="avail"] { --st: var(--s-avail); }
+.dir .canvas [data-s="stn"] { --st: var(--s-stn); }
+.dir .canvas [data-s="out"] { --st: var(--s-out); }
+
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { filter: brightness(1.25); } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+
+.foot { color: var(--muted); font-size: 14px; max-width: 70ch; }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <p><a href="./" style="color:inherit">← Back to the app</a></p>
+    <h1>Turnout Board — four looks</h1>
+    <p>The same screens drawn four ways: the Live view on a phone, a My board tile wall as it would look on a TV, the full-screen turnout alarm, and each look's colours and type. The data is the same in every one so you can compare like for like.</p>
+    <p>Status colours keep the same meaning throughout: <b>turned out</b>, responding, at incident, out of area, available, on station.</p>
+  </header>
+  <nav class="jump" id="jump"></nav>
+  <main id="dirs"></main>
+  <p class="foot">Nothing here changes the app. Pick a direction (or mix them, e.g. B's chevrons on A's palette) and it can be rolled into <code>styles.css</code>; the status colours, fonts and radii are all tokens already, so a switch is mostly a token swap plus a few accents.</p>
+</div>
+
+<script>
+const TRUCKS = [
+  { cs: "201", stn: "Auckland City", s: "out" },
+  { cs: "205", stn: "Auckland City", s: "resp" },
+  { cs: "251", stn: "Parnell", s: "inc" },
+  { cs: "261", stn: "Grey Lynn", s: "ooa" },
+  { cs: "611", stn: "Balmoral", s: "avail" },
+  { cs: "621", stn: "Mt Roskill", s: "stn" },
+];
+const LABEL = { out: "Turned out", resp: "Responding", inc: "At incident", ooa: "Out of area", avail: "Available", stn: "On station" };
+
+const DIRS = [
+  {
+    id: "A", cls: "dA", name: "Station Board", dot: "#e5333b",
+    tag: "What's live today: dark slate, condensed headings, bright status fills. Built to scan quickly.",
+    app: "Turnout Board", h3: "Auckland City turned out",
+    palette: [["#0f141b","Night"],["#1c2532","Panel"],["#e8edf3","Text"],["#e5333b","Turned out"],["#f29d1f","Responding"],["#c38bf7","At incident"],["#2bb5a8","Out of area"],["#3d8bf2","Available"],["#3fbf6a","On station"],["#ffcf33","Priority"]],
+    type: ["Barlow Condensed", "IBM Plex Sans for body copy and settings.", "IBM Plex Mono · 182201 · 14:02:37"],
+    good: ["Already built and tested", "Status colours read from across a room", "Condensed type fits many tiles on a phone"],
+    watch: ["Fairly generic \"dashboard\" feel", "Red and amber close together for colour-blind viewers (labels help)"],
+    best: ["Everyday phone use", "Mixed phone + TV setups"],
+  },
+  {
+    id: "B", cls: "dB", name: "Hi-Vis Livery", dot: "#ffd400",
+    tag: "Borrowed from appliance livery: hi-vis yellow, red chevrons, heavy uppercase type, square corners.",
+    app: "Turnout Board", h3: "Auckland City turned out",
+    palette: [["#0b0b0c","Black"],["#ffd400","Hi-vis"],["#e10600","Turned out"],["#ff8a00","Responding"],["#9b30ff","At incident"],["#00b3a4","Out of area"],["#1f6fff","Available"],["#c6ff00","On station"]],
+    type: ["Archivo Black", "Archivo Narrow for body copy and settings.", "ARCHIVO NARROW · 182201 · 14:02:37"],
+    good: ["The most \"fire service\" of the four", "Huge, punchy TV tiles", "Alarm screen is unmistakable"],
+    watch: ["Loud for all-day phone use", "Chevrons need restraint or it gets busy", "Too close to official livery for some tastes"],
+    best: ["A station-style TV on the wall", "Turnout alarm drama"],
+  },
+  {
+    id: "C", cls: "dC", name: "Scanner LCD", dot: "#7dff6a",
+    tag: "A backlit radio-scanner display: phosphor glow, pixel type, outlined segments. Made for radio people.",
+    app: "TURNOUT//BOARD", h3: "AUCKLAND CITY T/O",
+    palette: [["#0a0f0a","Backlight off"],["#122014","Panel"],["#b6ffb0","Phosphor"],["#ff4d3d","Turned out"],["#ffb02e","Responding"],["#d68cff","At incident"],["#3fe0d0","Out of area"],["#6fb5ff","Available"],["#7dff6a","On station"]],
+    type: ["VT323 182201", "Share Tech Mono for body copy and settings.", "SHARE TECH MONO · 182201 · 14:02:37"],
+    good: ["Fun and has real character", "Fits the hobby: feels like a scanner", "Dark, so it's easy on the eyes at night"],
+    watch: ["Outlined tiles are less glanceable than fills", "Pixel type is hard to read in long settings text", "Glow effects cost a little battery"],
+    best: ["Night-time listening", "Desk monitor next to the radio"],
+  },
+  {
+    id: "D", cls: "dD", name: "Dan Richards Design System", dot: "#6b3dd9",
+    tag: "Your design system: plum on warm cream, Instrument Serif with a violet italic word, hairline rules.",
+    app: "Turnout <em>Board</em>", h3: "Auckland City <em>turned out</em>",
+    palette: [["#f4ecdd","Cream"],["#faf4e6","Paper"],["#2e1a4a","Plum · on station"],["#6b3dd9","Violet · at incident"],["#c8567e","Rose · turned out"],["#e0a93b","Marigold · responding"],["#4da89e","Seafoam · out of area"],["#816c97","Plum 60 · available"]],
+    type: ["Calls, <em>calmly</em>", "DM Sans for body copy and settings.", "DM Mono · 182201 · 14:02:37"],
+    good: ["Polished, unusual, and clearly yours", "Lovely for the Settings and Log pages", "Plum TV mode looks classy on a wall"],
+    watch: ["The system uses its accents once each; a status board needs all six at once, so this bends that rule", "Softer colours are less urgent: rose \"turned out\" reads gentler than red", "Serif numbers are less punchy than condensed sans at a distance"],
+    best: ["A calmer, design-led take", "Sharing screenshots"],
+  },
+];
+
+const tile = (t, extra = "") => `<div class="tile ${extra}" data-s="${t.s}"><div class="cs">${t.cs}</div><div><div class="stn">${t.stn}</div><div class="st">${LABEL[t.s]}</div></div></div>`;
+
+function render(d) {
+  return `
+  <section class="dir" id="dir-${d.id}">
+    <div class="dir-head"><h2>${d.id}. ${d.name}</h2><div class="tag">${d.tag}</div><div class="letter">${d.id}</div></div>
+    <div class="canvas ${d.cls}">
+      <div class="app">
+        <div class="bar"><span class="name">${d.app}</span><span class="live"><i></i>Live · Demo</span></div>
+        <div class="tabs"><span class="on">Live</span><span>My board</span><span>Trucks</span><span>Log</span></div>
+        <div class="app-body">
+          <div class="pbanner"><span class="k">Priority</span><span>Parnell 251</span><span class="t">14:01</span></div>
+          <div class="job">
+            <div class="k">Turnout · 182201</div>
+            <h3>${d.h3}</h3>
+            <div class="meta">14:02 · 2 trucks · 40s ago</div>
+            <div class="units"><span class="chip out" data-s="out">201 Turned out</span><span class="chip" data-s="resp">205 Responding</span></div>
+          </div>
+          <div><p class="cap">My board</p><div class="tiles">${TRUCKS.map((t, i) => tile(t, i === 0 ? "pulse" : "")).join("")}</div></div>
+        </div>
+      </div>
+      <div class="tvwrap"><p class="cap">TV mode · 1920×1080</p>
+        <div class="tv"><div class="tv-top"><span class="called pulse">Auckland City called</span><span>14:02:37</span></div>
+          <div class="tv-grid">${TRUCKS.map((t, i) => tile(t, i === 0 ? "pulse" : "")).join("")}</div></div>
+      </div>
+      <div class="alarmwrap"><p class="cap">Turnout alarm</p>
+        <div class="alarm"><span class="k">Turnout</span><span class="t">${d.id === "D" ? "Auckland City <em>201</em>" : "Auckland City 201"}</span><span class="m">182201 · 14:02:37 · audio un-muted 45s</span><button type="button">Acknowledge</button></div>
+      </div>
+      <div class="pal"><p class="cap">Palette</p><div class="sw">${d.palette.map(([c, n]) => `<div><i style="background:${c}"></i><span>${n}<br>${c}</span></div>`).join("")}</div></div>
+      <div class="type"><p class="cap">Type</p><p class="d">${d.type[0]}</p><p class="b">${d.type[1]}</p><p class="mo">${d.type[2]}</p></div>
+    </div>
+    <div class="notes">
+      <div><h4>Good at</h4><ul>${d.good.map((x) => `<li>${x}</li>`).join("")}</ul></div>
+      <div><h4>Watch out for</h4><ul>${d.watch.map((x) => `<li>${x}</li>`).join("")}</ul></div>
+      <div><h4>Best for</h4><ul>${d.best.map((x) => `<li>${x}</li>`).join("")}</ul></div>
+    </div>
+  </section>`;
+}
+
+document.getElementById("dirs").innerHTML = DIRS.map(render).join("");
+document.getElementById("jump").innerHTML = DIRS.map((d) => `<a href="#dir-${d.id}"><b style="background:${d.dot}"></b>${d.id}. ${d.name}</a>`).join("");
+</script>

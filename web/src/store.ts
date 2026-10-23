@@ -42,9 +42,18 @@ export interface PriorityAlarmSettings {
   autoClear: number; // seconds until the alarm clears by itself; 0 = wait for Acknowledge
 }
 
+/** One saved board: a name and its trucks. */
+export interface SavedBoard {
+  id: string;
+  name: string;
+  appliances: string[];
+}
+
 export interface MyBoardSettings {
-  appliances: string[]; // trucks on the custom board, in the order added
+  appliances: string[]; // trucks on the board being shown (kept in step with boards[active])
   size: "large" | "compact";
+  boards: SavedBoard[];
+  active: string; // id of the board being shown
 }
 
 /** Full-screen turnout alarm for chosen stations and trucks. */
@@ -136,7 +145,7 @@ const DEFAULT_SETTINGS: Settings = {
   input: { deviceId: "", monitor: true, volume: 0.8 },
   alerts: { prioritySound: true, watchedSound: true, notify: false, unmuteSeconds: 45 },
   watched: [],
-  myBoard: { appliances: [], size: "large" },
+  myBoard: { appliances: [], size: "large", boards: [{ id: "main", name: "My board", appliances: [] }], active: "main" },
   alarm: { stations: [], appliances: [], sound: true, repeat: true, autoClear: 0 },
   priorityAlarm: { scope: "off", stations: [], appliances: [], autoClear: 0 },
   muted: false,
@@ -151,7 +160,7 @@ function initialSettings(): Settings {
     sim: { ...DEFAULT_SETTINGS.sim, ...saved.sim },
     input: { ...DEFAULT_SETTINGS.input, ...saved.input },
     alerts: { ...DEFAULT_SETTINGS.alerts, ...saved.alerts },
-    myBoard: { ...DEFAULT_SETTINGS.myBoard, ...saved.myBoard },
+    myBoard: migrateBoards({ ...DEFAULT_SETTINGS.myBoard, ...saved.myBoard }),
     alarm: { ...DEFAULT_SETTINGS.alarm, ...saved.alarm },
     priorityAlarm: { ...DEFAULT_SETTINGS.priorityAlarm, ...saved.priorityAlarm },
   };
@@ -162,6 +171,14 @@ function initialSettings(): Settings {
     if (q) { s.mode = "backend"; s.backendUrl = q; }
   } catch { /* no location */ }
   return s;
+}
+
+/** Older saves had one board; make it the first saved board. */
+function migrateBoards(b: MyBoardSettings): MyBoardSettings {
+  const boards = b.boards?.length && b.boards !== DEFAULT_SETTINGS.myBoard.boards
+    ? b.boards : [{ id: "main", name: "My board", appliances: b.appliances ?? [] }];
+  const active = boards.find((x) => x.id === b.active) ? b.active : boards[0].id;
+  return { ...b, boards, active, appliances: boards.find((x) => x.id === active)!.appliances };
 }
 
 const localCodebook = load<Codebook>("tb.codebook.local");
@@ -198,8 +215,30 @@ export const store = {
   alertSettings(patch: Partial<AlertSettings>) {
     store.settings({ alerts: { ...state.settings.alerts, ...patch } });
   },
+  /** Changing `appliances` changes the board being shown. */
   myBoard(patch: Partial<MyBoardSettings>) {
-    store.settings({ myBoard: { ...state.settings.myBoard, ...patch } });
+    const cur = { ...state.settings.myBoard, ...patch };
+    if (patch.appliances) cur.boards = cur.boards.map((b) => (b.id === cur.active ? { ...b, appliances: patch.appliances! } : b));
+    store.settings({ myBoard: cur });
+  },
+  showBoard(id: string) {
+    const b = state.settings.myBoard.boards.find((x) => x.id === id);
+    if (b) store.myBoard({ active: id, appliances: b.appliances });
+  },
+  addBoard(name: string): string {
+    const id = `b${Date.now().toString(36)}`;
+    const boards = [...state.settings.myBoard.boards, { id, name, appliances: [] }];
+    store.settings({ myBoard: { ...state.settings.myBoard, boards, active: id, appliances: [] } });
+    return id;
+  },
+  renameBoard(id: string, name: string) {
+    store.myBoard({ boards: state.settings.myBoard.boards.map((b) => (b.id === id ? { ...b, name } : b)) });
+  },
+  deleteBoard(id: string) {
+    const boards = state.settings.myBoard.boards.filter((b) => b.id !== id);
+    if (!boards.length) return;
+    const active = state.settings.myBoard.active === id ? boards[0].id : state.settings.myBoard.active;
+    store.settings({ myBoard: { ...state.settings.myBoard, boards, active, appliances: boards.find((b) => b.id === active)!.appliances } });
   },
   priorityAlarm(patch: Partial<PriorityAlarmSettings>) {
     store.settings({ priorityAlarm: { ...state.settings.priorityAlarm, ...patch } });

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { boardText, stateText, type Board } from "../core/derive";
+import type { Index } from "../core/interpret";
 import type { ApplianceState } from "../core/types";
 import { store, useStore } from "../store";
 import { ago, Seg, Sheet, stateVar, useBoard } from "./common";
@@ -10,9 +11,62 @@ import { UnitPicker } from "./Picker";
 
 const LEGEND: ApplianceState[] = ["turned-out", "responding", "at-incident", "out-of-area", "available-radio", "on-station", "status-unknown", "not-heard"];
 
-/** A custom grid of chosen trucks, grouped by station, coloured by status. */
-export function MyBoardView({ nav }: { nav: Nav }) {
+/** Chosen trucks grouped by station, in the order each station was first added. */
+function groupByStation(appliances: string[], ix: Index) {
+  const groups: { stationId: string; ids: string[] }[] = [];
+  for (const id of appliances) {
+    const a = ix.appliance.get(id);
+    if (!a) continue;
+    let g = groups.find((x) => x.stationId === a.stationId);
+    if (!g) groups.push((g = { stationId: a.stationId, ids: [] }));
+    g.ids.push(id);
+  }
+  return groups;
+}
+
+/** One station's card: its name, when it was last turned out, and a cell per truck.
+ *  The same card is used on the board and (scaled up) in TV mode. */
+function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
+  stationId: string; ids: string[]; flashMs: number; onTruck: (id: string) => void; onStation?: () => void; style?: CSSProperties;
+}) {
   const { ix, board, now } = useBoard();
+  const sb = board.stations.get(stationId);
+  const called = sb?.history.find((e) => e.type === "station-turnout");
+  const stationCalled = !!called && now - called.call.time < flashMs;
+  const name = ix.station.get(stationId)?.name;
+  return (
+    <section className={`mb-station${stationCalled ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4), ...style }}>
+      <header>
+        {onStation ? <button className="linkbtn mb-sname" onClick={onStation}>{name}</button> : <span className="mb-sname">{name}</span>}
+        {stationCalled
+          ? <span className="mb-called">Station called · {ago(called!.call.time, now)}</span>
+          : sb?.lastTurnout ? <span className="mb-last">last turnout {ago(sb.lastTurnout, now)}</span> : null}
+      </header>
+      <div className="mb-cells">
+        {ids.map((id) => {
+          const a = ix.appliance.get(id)!;
+          const ab = board.appliances.get(id)!;
+          const own = ab.history.find((e) => e.type === "turnout");
+          const turnedOut = !!own && now - own.call.time < flashMs;
+          const priority = !!ab.priorityAt && now - ab.priorityAt < flashMs * 4;
+          return (
+            <button key={id} className={`mb-cell${turnedOut ? " flash" : ""}${stationCalled ? " pulse" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
+              style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => onTruck(id)}
+              aria-label={`${a.callsign} ${boardText(ab)}`}>
+              <b>{a.callsign}</b>
+              <span className="mb-state">{turnedOut ? "Turnout" : priority ? "Priority call" : boardText(ab)}</span>
+              <span className="mb-ago">{ab.lastHeard ? ago(ab.lastHeard, now).replace(" ago", "") : "—"}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+/** Your boards: each a set of trucks grouped by station, coloured by status. */
+export function MyBoardView({ nav }: { nav: Nav }) {
+  const { ix, board } = useBoard();
   const cfg = useStore((s) => s.settings.myBoard);
   const { recentMs } = useWindows();
   const flashMs = recentMs / 7.5; // ~2 minutes at real speed
@@ -24,16 +78,8 @@ export function MyBoardView({ nav }: { nav: Nav }) {
   }, []);
   const wrap = useRef<HTMLDivElement>(null);
   const wake = useWakeLock();
-
-  // Group chosen trucks by station, in the order the stations first appear.
-  const groups: { stationId: string; ids: string[] }[] = [];
-  for (const id of cfg.appliances) {
-    const a = ix.appliance.get(id);
-    if (!a) continue;
-    let g = groups.find((x) => x.stationId === a.stationId);
-    if (!g) groups.push((g = { stationId: a.stationId, ids: [] }));
-    g.ids.push(id);
-  }
+  const groups = groupByStation(cfg.appliances, ix);
+  const current = cfg.boards.find((b) => b.id === cfg.active);
 
   const fullscreen = () => {
     const el = wrap.current;
@@ -41,60 +87,39 @@ export function MyBoardView({ nav }: { nav: Nav }) {
     if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
     else void el.requestFullscreen?.().catch(() => {});
   };
+  const newBoard = () => { store.addBoard(`Board ${cfg.boards.length + 1}`); setEditing(true); };
 
   return (
     <>
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <h1 className="page-title">My board</h1>
+        <h1 className="page-title">{current?.name ?? "My board"}</h1>
         <div className="row">
           {cfg.appliances.length > 0 && <button className="btn primary" onClick={() => setTv(true)}>TV mode</button>}
           <Seg label="Cell size" value={cfg.size} onChange={(v) => store.myBoard({ size: v })} options={[["large", "Large"], ["compact", "Compact"]]} />
-          <button className="btn" onClick={() => setEditing(true)}>{cfg.appliances.length ? "Edit trucks" : "Choose trucks"}</button>
+          <button className="btn" onClick={() => setEditing(true)}>{cfg.appliances.length ? "Edit board" : "Choose trucks"}</button>
         </div>
+      </div>
+      <div className="boards-bar" role="tablist" aria-label="Boards">
+        {cfg.boards.map((b) => (
+          <button key={b.id} role="tab" aria-selected={b.id === cfg.active} className={`board-tab${b.id === cfg.active ? " on" : ""}`} onClick={() => store.showBoard(b.id)}>
+            {b.name}<span>{b.appliances.length}</span>
+          </button>
+        ))}
+        <button className="board-tab add" onClick={newBoard}>+ New board</button>
       </div>
 
       {groups.length === 0 ? (
         <section className="panel">
-          <p className="empty">Pick the trucks you want to keep an eye on: your local station, a few favourites, or a whole area. Each one gets a cell coloured by its status, and flashes when it's turned out.</p>
-          <div className="row"><button className="btn primary" onClick={() => setEditing(true)}>Choose trucks</button></div>
+          <p className="empty">Pick the stations and trucks for this board: your local station, a few favourites, or a whole area. Each truck gets a cell coloured by its status, and flashes when it's turned out. Make more boards for other areas with "New board".</p>
+          <div className="row"><button className="btn primary" onClick={() => setEditing(true)}>Choose stations and trucks</button></div>
         </section>
       ) : (
         <div ref={wrap} className={`myboard ${cfg.size}`}>
           <Legend states={LEGEND} counts={countStates(cfg.appliances, board)} className="mb-legend" />
           <div className="mb-groups">
-            {groups.map(({ stationId, ids }) => {
-              const sb = board.stations.get(stationId);
-              const called = sb?.history.find((e) => e.type === "station-turnout");
-              const stationCalled = called && now - called.call.time < flashMs;
-              return (
-                <section key={stationId} className={`mb-station${stationCalled ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4) }}>
-                  <header>
-                    <button className="linkbtn mb-sname" onClick={() => nav.station(stationId)}>{ix.station.get(stationId)?.name}</button>
-                    {stationCalled
-                      ? <span className="mb-called">Station called · {ago(called!.call.time, now)}</span>
-                      : sb?.lastTurnout ? <span className="muted small">last turnout {ago(sb.lastTurnout, now)}</span> : null}
-                  </header>
-                  <div className="mb-cells">
-                    {ids.map((id) => {
-                      const a = ix.appliance.get(id)!;
-                      const ab = board.appliances.get(id)!;
-                      const own = ab.history.find((e) => e.type === "turnout");
-                      const turnedOut = own && now - own.call.time < flashMs;
-                      const priority = ab.priorityAt && now - ab.priorityAt < flashMs * 4;
-                      return (
-                        <button key={id} className={`mb-cell${turnedOut ? " flash" : ""}${stationCalled ? " pulse" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
-                          style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => nav.appliance(id)}
-                          aria-label={`${a.callsign} ${boardText(ab)}`}>
-                          <b>{a.callsign}</b>
-                          <span className="mb-state">{turnedOut ? "Turnout" : boardText(ab)}</span>
-                          <span className="mb-ago">{ab.lastHeard ? ago(ab.lastHeard, now).replace(" ago", "") : "—"}{priority ? " · PRIORITY" : ""}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
+            {groups.map(({ stationId, ids }) => (
+              <StationCard key={stationId} stationId={stationId} ids={ids} flashMs={flashMs} onTruck={nav.appliance} onStation={() => nav.station(stationId)} />
+            ))}
           </div>
         </div>
       )}
@@ -107,12 +132,17 @@ export function MyBoardView({ nav }: { nav: Nav }) {
       )}
 
       {tv && <TvBoard onExit={exitTv} />}
-      {editing && (
-        <Sheet title="Trucks on my board" sub={`${cfg.appliances.length} chosen`} onClose={() => setEditing(false)}>
+      {editing && current && (
+        <Sheet title="Edit board" sub={`${cfg.appliances.length} truck${cfg.appliances.length === 1 ? "" : "s"}`} onClose={() => setEditing(false)}>
+          <label className="field"><span>Board name</span>
+            <input value={current.name} onChange={(e) => store.renameBoard(current.id, e.target.value)} placeholder="e.g. Central, North Shore" />
+          </label>
+          <p className="note">Tap a station to add all its trucks, or pick trucks one at a time. Trucks show grouped under their station.</p>
           <UnitPicker stationMode="add-all" appliances={cfg.appliances} onChange={({ appliances }) => store.myBoard({ appliances })} />
           <div className="row">
             <button className="btn primary" onClick={() => setEditing(false)}>Done</button>
-            {cfg.appliances.length > 0 && <button className="btn danger" onClick={() => store.myBoard({ appliances: [] })}>Clear all</button>}
+            {cfg.appliances.length > 0 && <button className="btn" onClick={() => store.myBoard({ appliances: [] })}>Clear trucks</button>}
+            {cfg.boards.length > 1 && <button className="btn danger" onClick={() => { store.deleteBoard(current.id); setEditing(false); }}>Delete this board</button>}
           </div>
         </Sheet>
       )}
@@ -228,15 +258,10 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
     return () => { clearTimeout(t); window.removeEventListener("pointermove", show); window.removeEventListener("pointerdown", show); };
   }, []);
 
-  const ids = cfg.appliances.filter((id) => ix.appliance.has(id))
-    .sort((a, b) => cfg.appliances.indexOf(a) - cfg.appliances.indexOf(b));
-  // keep each station's trucks together, in the order stations were first added
-  const order = [...new Set(ids.map((id) => ix.appliance.get(id)!.stationId))];
-  ids.sort((a, b) => order.indexOf(ix.appliance.get(a)!.stationId) - order.indexOf(ix.appliance.get(b)!.stationId));
-  const called = order.map((sid) => ({ sid, ev: board.stations.get(sid)?.history.find((e) => e.type === "station-turnout") }))
+  const clusters = groupByStation(cfg.appliances, ix);
+  const ids = clusters.flatMap((c) => c.ids);
+  const called = clusters.map((c) => ({ sid: c.stationId, ev: board.stations.get(c.stationId)?.history.find((e) => e.type === "station-turnout") }))
     .filter((c) => c.ev && now - c.ev.call.time < flashMs);
-  const calledSet = new Set(called.map((c) => c.sid));
-  const clusters = order.map((sid) => ({ sid, ids: ids.filter((id) => ix.appliance.get(id)!.stationId === sid) }));
   const fit = fitClusters(clusters.map((c) => c.ids.length), box.w, box.h, 14);
   const [picking, setPicking] = useState<string | null>(null);
   useEffect(() => {
@@ -245,38 +270,20 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [picking]);
+  const boardName = cfg.boards.find((b) => b.id === cfg.active)?.name;
 
   return (
     <div className="tv" role="region" aria-label="TV board">
       <header className="tv-top">
         {called.length > 0
           ? <span className="tv-called">Station called: {called.map((c) => ix.station.get(c.sid)?.name).join(" · ")}</span>
-          : <span className="tv-quiet">{ids.filter((id) => board.appliances.get(id)!.state !== "on-station" && board.appliances.get(id)!.state !== "not-heard").length} of {ids.length} trucks out</span>}
+          : <span className="tv-quiet">{cfg.boards.length > 1 && boardName ? `${boardName} · ` : ""}{ids.filter((id) => board.appliances.get(id)!.state !== "on-station" && board.appliances.get(id)!.state !== "not-heard").length} of {ids.length} trucks out</span>}
         <span className="tv-clock">{new Intl.DateTimeFormat("en-NZ", { timeZone: "Pacific/Auckland", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now)}</span>
       </header>
       <div ref={area} className="tv-area" style={{ ["--th" as string]: `${fit.th}px`, ["--tw" as string]: `${fit.tw}px` }}>
-        {ids.length === 0 && <p className="tv-empty">Choose trucks for My board first.</p>}
+        {ids.length === 0 && <p className="tv-empty">Choose trucks for this board first.</p>}
         {clusters.map((c, ci) => (
-          <section key={c.sid} className={`tv-cluster${calledSet.has(c.sid) ? " called" : ""}`} style={{ ["--cols" as string]: fit.cols[ci] }}>
-            <h3 className="tv-sname">{ix.station.get(c.sid)?.name}{calledSet.has(c.sid) && <span className="tv-scalled">Called</span>}</h3>
-            <div className="tv-cells">
-              {c.ids.map((id) => {
-                const a = ix.appliance.get(id)!;
-                const ab = board.appliances.get(id)!;
-                const own = ab.history.find((e) => e.type === "turnout");
-                const turnedOut = own && now - own.call.time < flashMs;
-                const priority = ab.priorityAt && now - ab.priorityAt < flashMs * 4;
-                return (
-                  <button key={id} className={`tv-tile${turnedOut ? " flash" : ""}${calledSet.has(a.stationId) ? " pulse" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
-                    style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => setPicking(id)} aria-label={`${a.callsign}: ${boardText(ab)}. Set K code`}>
-                    <b className="tv-call">{a.callsign}</b>
-                    <span className="tv-state">{turnedOut ? "Turnout" : priority ? "Priority call" : boardText(ab)}</span>
-                    <span className="tv-ago">{ab.lastHeard ? ago(ab.lastHeard, now) : ""}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <StationCard key={c.stationId} stationId={c.stationId} ids={c.ids} flashMs={flashMs} onTruck={setPicking} style={{ ["--cols" as string]: fit.cols[ci] }} />
         ))}
       </div>
       <Legend states={LEGEND.filter((s) => s !== "status-unknown")} counts={countStates(ids, board)} className="tv-legend" />
