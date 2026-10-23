@@ -26,7 +26,7 @@ class DecoderConfig:
     # tone ~137 ms after the first), which ignores echo tails and splits.
     # "matched": like slots, but decides each slot with a rectangular
     # Goertzel over exactly that slot's samples (a matched filter).
-    assembler: str = "runs"
+    assembler: str = "slots"
     tone_ms: float = 20.0
     final_offset_ms: float = 137.0
     final_ms: float = 35.0

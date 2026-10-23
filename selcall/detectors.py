@@ -26,7 +26,7 @@ def _level_gate(energy, floor_db):
     return 10 * np.log10(energy / ref + 1e-12) > -floor_db
 
 
-def goertzel(x, fs, win_ms=15, hop_ms=2.5, min_purity=0.45, min_ratio_db=4.0,
+def goertzel(x, fs, win_ms=15, hop_ms=2.5, min_purity=0.45, min_ratio_db=2.0,
              floor_db=40, window="hann"):
     """Bank of 16 single-frequency DFTs (Goertzel) at the exact CCIR tones.
 
