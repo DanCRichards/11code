@@ -61,8 +61,9 @@ them with the real suffixes once they're confirmed from recordings.
 
 - CCIR tones, E = 2110 Hz is the repeat tone.
 - Station turnout: `182` + callsign turns out that truck.
-- `182` + station number + `0` is the station **acknowledging** the turnout, a few seconds after it;
-  it is not a call-out. The app shows it as "✓ Acknowledged" and never alarms on it.
+- `182` + station number + `0` is just the radio's **ACK** of a turnout, a few seconds after it;
+  it is not a call-out. The app reads it (so it isn't an "unknown code") but leaves it off every
+  view (`useBoard` filters `station-ack`) and never alarms on it.
 - Appliance message: `HEADER-SEP+BODY` (13 tones); short appliance call is header + final tone
   (`B` = priority, `C` = routine, `4` = turnout ack; unverified).
 

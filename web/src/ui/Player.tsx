@@ -23,7 +23,8 @@ function markerColour(ev: Interpreted): string {
 /** The found calls, interpreted with the current codebook. */
 function useFound(p?: Player) {
   const { ix } = useBoard();
-  return useMemo(() => (p?.found ?? []).map((f) => ({ offset: f.offset, ev: interpret(f.call, ix) })), [p?.found, ix]);
+  return useMemo(() => (p?.found ?? []).map((f) => ({ offset: f.offset, ev: interpret(f.call, ix) }))
+    .filter((f) => f.ev.type !== "station-ack"), [p?.found, ix]); // the station's ACK isn't worth listing
 }
 
 /** Pick a file by button or drag-and-drop; also offers a generated sample. */

@@ -582,7 +582,4 @@ a.settings-card { color: inherit; text-decoration: none; }
 .sb-unit { box-shadow: inset 4px 0 0 var(--c, var(--line)); padding-left: 12px; }
 .mb-state { align-items: flex-start; }
 .mb-state > span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.25; }
-.mb-ack { background: color-mix(in srgb, var(--s-station) 22%, transparent); color: var(--s-station); font-family: var(--mono); font-size: 11px; font-weight: 600;
-  padding: 3px 8px; border-radius: var(--r); box-shadow: inset 0 0 0 1px var(--s-station); }
-.tv-area .mb-ack { font-size: min(calc(var(--th) * .085), 2.6vh); white-space: nowrap; }
-.job-ack { margin-left: 4px; color: var(--s-station); font-weight: 700; }
+.tv-area 

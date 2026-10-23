@@ -67,7 +67,6 @@ describe("jobs", () => {
     expect(jobs.map((j) => j.stationIds)).toEqual([["birkenhead"], ["albany"], ["grey-lynn", "auckland-city"]]);
     expect(jobs[2].applianceIds).toEqual(["261", "205"]);
     expect(jobs[2].active).toBe(true);
-    expect(jobs[2].acks).toEqual(["grey-lynn"]);
     expect(jobs[2].turnouts).toHaveLength(2); // the acknowledgement isn't a turnout
   });
 });

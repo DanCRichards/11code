@@ -19,7 +19,6 @@ export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClo
       <button className="btn" aria-pressed={watched} onClick={() => store.toggleWatch(id)}>{watched ? "★ Watching this station" : "☆ Watch this station"}</button>
       <dl className="kv">
         <dt>Last turnout</dt><dd>{b.lastTurnoutEvent ? `${b.lastTurnoutEvent.title}, ${ago(b.lastTurnout, now)}` : "None heard"}</dd>
-        <dt>Last acknowledged</dt><dd>{b.lastAck ? ago(b.lastAck, now) : "None heard"}</dd>
         <dt>Turnout codes</dt>
         <dd>{codes.length ? codes.map((c) => (
           <div key={c.code}><code>{c.code}</code> {c.applianceId ? `· ${ix.appliance.get(c.applianceId)?.callsign}` : "· station acknowledgement"}{c.source === "pattern" && <span className="tag">from pattern</span>}</div>

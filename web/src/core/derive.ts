@@ -12,7 +12,6 @@ export interface ApplianceBoard {
 
 export interface StationBoard {
   lastTurnout?: number;
-  lastAck?: number; // the station acknowledged a turnout (182 + station + 0)
   lastTurnoutEvent?: Interpreted;
   turnoutsToday: number;
   history: Interpreted[]; // newest first
@@ -81,7 +80,6 @@ export function deriveBoard(events: Interpreted[], ix: Index, now: number, dismi
       ab.lastEvent = ev;
       if (ev.state) { ab.state = ev.state; ab.status = ev.status; }
     }
-    if (ev.type === "station-ack" && sb) sb.lastAck = t;
     if (ev.type === "turnout") {
       turnouts.unshift(ev);
       if (sb) {

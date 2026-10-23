@@ -21,7 +21,8 @@ export function useBoard() {
   const dismissed = useStore((s) => s.settings.dismissed);
   const now = useNow(5000);
   const ix = useMemo(() => buildIndex(codebook), [codebook]);
-  const events = useMemo(() => interpretAll(calls, ix), [calls, ix]);
+  // Station codes ending in 0 are only the radio's ACK of a turnout, so they're left off every view.
+  const events = useMemo(() => interpretAll(calls, ix).filter((e) => e.type !== "station-ack"), [calls, ix]);
   const board = useMemo(() => deriveBoard(events, ix, now, new Set(dismissed)), [events, ix, now, dismissed]);
   return { codebook, ix, events, board, now };
 }

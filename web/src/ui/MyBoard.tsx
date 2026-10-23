@@ -31,16 +31,13 @@ function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
 }) {
   const { ix, board, now } = useBoard();
   const sb = board.stations.get(stationId);
-  // Recently turned out: red until the station acknowledges (182 + station + 0), then a tick.
   const turnedOutAt = sb?.lastTurnout && now - sb.lastTurnout < flashMs ? sb.lastTurnout : undefined;
-  const ackAt = turnedOutAt && sb?.lastAck && sb.lastAck >= turnedOutAt ? sb.lastAck : undefined;
   const name = ix.station.get(stationId)?.name;
   return (
-    <section className={`mb-station${turnedOutAt && !ackAt ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4), ...style }}>
+    <section className={`mb-station${turnedOutAt ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4), ...style }}>
       <header>
         {onStation ? <button className="linkbtn mb-sname" onClick={onStation}>{name}</button> : <span className="mb-sname">{name}</span>}
-        {ackAt ? <span className="mb-ack">✓ Acknowledged · {ago(ackAt, now)}</span>
-          : turnedOutAt ? <span className="mb-called">Turned out · {ago(turnedOutAt, now)}</span>
+        {turnedOutAt ? <span className="mb-called">Turned out · {ago(turnedOutAt, now)}</span>
           : sb?.lastTurnout ? <span className="mb-last">last turnout {ago(sb.lastTurnout, now)}</span> : null}
       </header>
       <div className="mb-cells">

@@ -119,7 +119,7 @@ export function StationsView({ nav }: { nav: Nav }) {
 
 const LOG_FILTERS: [string, string, EventType[] | null][] = [
   ["all", "All", null],
-  ["turnouts", "Turnouts", ["turnout", "station-ack"]],
+  ["turnouts", "Turnouts", ["turnout"]],
   ["status", "Statuses", ["status"]],
   ["priority", "Priority", ["priority"]],
   ["other", "Routine", ["appliance-call"]],

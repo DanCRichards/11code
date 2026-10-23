@@ -79,6 +79,7 @@ export interface Settings {
   muted: boolean; // radio audio (monitor, demo tones, recordings) muted by the user
   showMap: boolean | null; // null = default for the screen size
   dismissed: string[]; // inbox keys the user chose to ignore
+  priorityHiddenUntil: number; // the priority banner stays hidden for calls up to this time (a little slack for recordings, whose times shift slightly)
 }
 
 export interface Connection {
@@ -151,6 +152,7 @@ const DEFAULT_SETTINGS: Settings = {
   muted: false,
   showMap: null,
   dismissed: [],
+  priorityHiddenUntil: 0,
 };
 
 function initialSettings(): Settings {

@@ -28,14 +28,14 @@ export function LiveView({ nav }: { nav: Nav }) {
   const showMapSetting = useStore((s) => s.settings.showMap);
   const showMap = showMapSetting ?? (typeof window !== "undefined" && window.innerWidth >= 1100);
   const { recentMs, priorityMs, jobMs } = useWindows();
-  const [hiddenPriority, setHiddenPriority] = useState<string>();
+  const hiddenUntil = useStore((s) => s.settings.priorityHiddenUntil);
 
   const today = nzDay(now);
   const turnoutsToday = board.turnouts.filter((e) => nzDay(e.call.time) === today).length;
   const outCount = [...board.appliances.values()].filter((b) => isCommitted(b.state)).length;
   const priorityToday = board.priorities.filter((e) => nzDay(e.call.time) === today).length;
   const prio = board.priorities[0];
-  const showPrio = prio && now - prio.call.time < priorityMs && hiddenPriority !== prio.call.id;
+  const showPrio = prio && now - prio.call.time < priorityMs && prio.call.time > hiddenUntil;
   const jobs = useMemo(() => groupJobs(events, ix, board, jobMs), [events, ix, board, jobMs]);
   const lastEv = lastCall ? events.find((e) => e.call.id === lastCall.id) : undefined;
 
@@ -49,7 +49,7 @@ export function LiveView({ nav }: { nav: Nav }) {
             <div>{prio.title} · {ago(prio.call.time, now)}</div>
           </div>
           <button onClick={() => prio.applianceId && nav.appliance(prio.applianceId)}>View</button>
-          <button onClick={() => setHiddenPriority(prio.call.id)} aria-label="Dismiss">Hide</button>
+          <button onClick={() => store.settings({ priorityHiddenUntil: prio.call.time + 1500 })} aria-label="Dismiss">Hide</button>
         </div>
       )}
       <SourceStrip nav={nav} />
@@ -97,7 +97,6 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
           {job.stationIds.map((sid, i) => (
             <span key={sid}>{i > 0 && <span className="muted"> + </span>}
               <button className="linkbtn job-st" onClick={() => nav.station(sid)}>{isWatched && watched.includes(sid) ? "★ " : ""}{ix.station.get(sid)?.name ?? sid}</button>
-              {job.acks.includes(sid) && <span className="job-ack" title="Station acknowledged the turnout">✓</span>}
             </span>
           ))}
         </div>

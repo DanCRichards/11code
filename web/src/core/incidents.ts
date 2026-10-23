@@ -11,7 +11,6 @@ export interface Job {
   stationIds: string[];
   applianceIds: string[];
   turnouts: Interpreted[];
-  acks: string[]; // stations that acknowledged
   active: boolean; // any of its appliances still committed
 }
 
@@ -40,16 +39,13 @@ export function groupJobs(events: Interpreted[], ix: Index, board: Board, window
       let job = [...jobs].reverse().find((j) => t - j.last <= windowMs &&
         j.stationIds.some((s) => s === ev.stationId || km(ix, s, ev.stationId!) <= NEARBY_KM));
       if (!job) {
-        job = { id: ev.call.id, start: t, last: t, stationIds: [], applianceIds: [], turnouts: [], acks: [], active: false };
+        job = { id: ev.call.id, start: t, last: t, stationIds: [], applianceIds: [], turnouts: [], active: false };
         jobs.push(job);
       }
       job.last = t;
       job.turnouts.push(ev);
       if (!job.stationIds.includes(ev.stationId)) job.stationIds.push(ev.stationId);
       if (ev.applianceId && !job.applianceIds.includes(ev.applianceId)) job.applianceIds.push(ev.applianceId);
-    } else if (ev.type === "station-ack" && ev.stationId) {
-      const job = [...jobs].reverse().find((j) => t - j.last <= windowMs && j.stationIds.includes(ev.stationId!));
-      if (job && !job.acks.includes(ev.stationId)) job.acks.push(ev.stationId);
     } else if (ev.type === "status" && ev.state === "responding" && ev.applianceId && ev.stationId) {
       const job = [...jobs].reverse().find((j) => t - j.last <= windowMs * 3 && j.stationIds.includes(ev.stationId!));
       if (job && !job.applianceIds.includes(ev.applianceId)) job.applianceIds.push(ev.applianceId);
