@@ -72,6 +72,11 @@ them with the real suffixes once they're confirmed from recordings.
 - Python decoder: `selcall/`, benches in `bench/`, tests `python -m pytest tests`.
 - Web app: `web/` (Vite + React + TS). `npm test`, `npx tsc --noEmit -p .`, `npm run build`.
 - Deployed to GitHub Pages from `master` by `.github/workflows/pages.yml`.
-- Production builds are obfuscated (`javascript-obfuscator` plugin in `web/vite.config.ts`).
-  The decoder is split into its own `dsp` chunk and gets renaming only, because string hiding
-  made decoding ~70x slower. `OBFUSCATE=0 npm run build` gives a readable build for debugging.
+- The browser decoder is WebAssembly: `web/assembly/selcall.ts` (AssemblyScript) holds the
+  filter, tone detection, slot reading, tone table and the demo's tone encoder.
+  `scripts/build-wasm.mjs` compiles it and embeds it as base64 in `src/decoder/wasm.gen.ts`
+  (git-ignored; the `pre*` npm scripts regenerate it). `src/decoder/selcall.ts` only copies audio
+  in, unpacks results and chunks long recordings. Keep it in step with `selcall/decode.py`.
+  The hot loop uses raw pointers (`load<f32>`); bounds-checked access was ~3x slower.
+- Production builds are also obfuscated (`javascript-obfuscator` plugin in `web/vite.config.ts`).
+  `OBFUSCATE=0 npm run build` gives a readable build for debugging.

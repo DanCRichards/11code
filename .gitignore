@@ -5,3 +5,4 @@ node_modules/
 web/dist/
 web/dist-single/
 server-data/
+web/src/decoder/wasm.gen.ts
