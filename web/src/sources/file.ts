@@ -110,6 +110,7 @@ export class FileSource {
       this.patch({ duration: buffer.duration, decoding: null, found, envelope: envelope(mono.x) });
       this.sync(true);
       this.tickLoop();
+      this.play(); // you just picked it, so start listening (audio was unlocked by that tap)
     } catch (e) {
       if (id !== this.loadId) return;
       this.patch({
@@ -128,7 +129,9 @@ export class FileSource {
 
   play() {
     const p = store.get().player;
-    if (!this.buffer || !p || p.decoding !== null) return;
+    if (!this.buffer || !p || p.decoding !== null || this.node) return; // already playing
+    // Playing a recording is asking to hear it, so lift the radio mute.
+    if (store.get().settings.muted) store.settings({ muted: false });
     const ctx = this.audio();
     if (this.offset >= p.duration - 0.05) { this.offset = 0; this.sync(true); }
     const node = ctx.createBufferSource();
@@ -168,6 +171,12 @@ export class FileSource {
     this.patch({ playing: false, position: this.offset });
     this.sync(true);
     if (was) this.play();
+  }
+
+  /** Jump to a point and play from there (tapping a call). */
+  playFrom(t: number) {
+    this.seek(t);
+    if (!store.get().player?.playing) this.play();
   }
 
   setReveal(reveal: Player["reveal"]) {

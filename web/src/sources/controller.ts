@@ -55,6 +55,7 @@ export const fileActions = {
   },
   toggle: () => file?.toggle(),
   seek: (t: number) => file?.seek(t),
+  playFrom: (t: number) => file?.playFrom(t),
   reveal: (r: "play" | "all") => file?.setReveal(r),
   close() {
     store.settings({ mode: "demo" });

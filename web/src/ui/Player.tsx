@@ -68,7 +68,7 @@ export function ImportPanel({ compact }: { compact?: boolean }) {
             <ul className="list">
               {found.map(({ offset, ev }) => (
                 <li key={ev.call.id}>
-                  <button className={`item${offset <= p.position + 0.05 && p.position - offset < 2 ? " fresh" : ""}`} onClick={() => fileActions.seek(Math.max(0, offset - 0.4))}
+                  <button className={`item${offset <= p.position + 0.05 && p.position - offset < 2 ? " fresh" : ""}`} onClick={() => fileActions.playFrom(Math.max(0, offset - 0.4))}
                     style={{ opacity: p.reveal === "play" && offset > p.position + 0.05 ? 0.55 : 1 }}>
                     <span className="t">{fmt(offset)}</span>
                     <span className="what"><b>{ev.title}</b><span><code>{ev.call.code || "—"}</code> · {Math.round(ev.call.confidence * 100)}%</span></span>
@@ -151,7 +151,7 @@ export function PlayerBar() {
           onPointerMove={(e) => { if (drag.current) seekAt(e.clientX); }}
           onPointerUp={() => { drag.current = false; }} />
       </div>
-      <button className="skip" disabled={!ready || !next} onClick={() => next && fileActions.seek(Math.max(0, next.offset - 0.4))}
+      <button className="skip" disabled={!ready || !next} onClick={() => next && fileActions.playFrom(Math.max(0, next.offset - 0.4))}
         title="Jump to the next call" aria-label="Jump to the next call">
         <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 5v14l9-7zM15 5h3v14h-3z" fill="currentColor" /></svg>
       </button>
