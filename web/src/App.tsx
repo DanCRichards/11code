@@ -26,6 +26,7 @@ export function App() {
   const conn = useStore((s) => s.connection);
   const mode = useStore((s) => s.settings.mode);
   const speed = useStore((s) => s.settings.sim.speed);
+  const listening = useStore((s) => s.input?.status === "listening");
   const hasPlayer = useStore((s) => s.settings.mode === "file" && !!s.player && (s.player.duration > 0 || s.player.decoding !== null));
   const { board } = useBoard();
   const now = useNow(1000);
@@ -58,14 +59,14 @@ export function App() {
     appliance: (id) => setSheet({ kind: "appliance", id }),
   };
 
-  const connLabel = mode === "demo" ? `Demo · ${speed}×` : mode === "file" ? "Recording" : { connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Offline", demo: "Demo", file: "Recording" }[conn.status];
+  const connLabel = mode === "demo" ? `Demo · ${speed}×` : mode === "file" ? "Recording" : mode === "input" ? (listening ? "Listening" : "Input off") : { connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Offline", demo: "Demo", file: "Recording", input: "Input" }[conn.status];
 
   return (
     <div className={`shell${hasPlayer ? " has-player" : ""}`}>
       <header className="top">
         <h1 className="brand">Auckland Turnouts</h1>
         <span className="spacer" />
-        <button className={`conn ${mode === "backend" ? conn.status : "demo"}`} onClick={() => go("data", "source")} title="Data source">
+        <button className={`conn ${mode === "backend" ? conn.status : mode === "input" && listening ? "live" : "demo"}`} onClick={() => go("data", "source")} title="Data source">
           <i />{connLabel}
         </button>
         <span className="clock"><b>{clockTime(now)}</b></span>

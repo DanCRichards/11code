@@ -481,6 +481,9 @@ function SourcePanel() {
         <button className="card-opt" aria-pressed={settings.mode === "file"} onClick={() => { store.settings({ mode: "file" }); startSource(); }}>
           <b>Recording</b><span className="small muted">Open an audio or video file, decode it here, and play it back with the board following along.</span>
         </button>
+        <button className="card-opt" aria-pressed={settings.mode === "input"} onClick={() => { store.settings({ mode: "input" }); startSource(); }}>
+          <b>Audio input</b><span className="small muted">Listen to a scanner through a microphone, line-in or USB sound card, decoded live in this browser, and hear it as it plays.</span>
+        </button>
         <button className="card-opt" aria-pressed={settings.mode === "backend"} onClick={connect}>
           <b>Live backend</b><span className="small muted">Real calls from your decoder (an SDR on a Raspberry Pi), and a codebook shared by everyone using it.</span>
         </button>
@@ -494,7 +497,7 @@ function SourcePanel() {
             <input value={key} type="password" autoComplete="off" onChange={(e) => setKey(e.target.value)} /></label>
           <div className="row">
             <button className="btn primary" onClick={connect}>{settings.mode === "backend" ? "Reconnect" : "Connect"}</button>
-            <span className="small">Status: <b>{{ demo: "Demo", file: "Recording", connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Not connected" }[conn.status]}</b></span>
+            <span className="small">Status: <b>{{ demo: "Demo", file: "Recording", input: "Audio input", connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Not connected" }[conn.status]}</b></span>
           </div>
           {conn.message && <div className={conn.status === "error" ? "error" : "note"}>{conn.message}</div>}
           {httpsPage && /^http:\/\//.test(url) && !/localhost|127\.0\.0\.1/.test(url) && (

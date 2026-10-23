@@ -4,17 +4,20 @@ import { BUNDLED, save, store } from "../store";
 import { BackendSource } from "./backend";
 import { DemoSource } from "./demo";
 import { FileSource } from "./file";
+import { InputSource } from "./input";
 
 let demo: DemoSource | undefined;
 let backend: BackendSource | undefined;
 let file: FileSource | undefined;
+let input: InputSource | undefined;
 
 /** Start the source for the current mode, stopping the previous one. */
 export function startSource() {
   demo?.stop();
   backend?.stop();
   file?.stop();
-  demo = backend = file = undefined;
+  input?.stop();
+  demo = backend = file = input = undefined;
   const { mode, backendUrl } = store.get().settings;
   if (mode === "backend") {
     backend = new BackendSource(BackendSource.normalise(backendUrl));
@@ -25,6 +28,9 @@ export function startSource() {
     if (mode === "file") {
       file = new FileSource();
       file.start();
+    } else if (mode === "input") {
+      input = new InputSource();
+      input.start();
     } else {
       demo = new DemoSource();
       demo.start();
@@ -50,6 +56,31 @@ export const fileActions = {
   toggle: () => file?.toggle(),
   seek: (t: number) => file?.seek(t),
   reveal: (r: "play" | "all") => file?.setReveal(r),
+  close() {
+    store.settings({ mode: "demo" });
+    startSource();
+  },
+};
+
+/** Live input from a microphone, line-in or USB sound card. */
+export const inputActions = {
+  /** Switch to live input and start listening (call from a tap). */
+  listen() {
+    if (store.get().settings.mode !== "input" || !input) {
+      store.settings({ mode: "input" });
+      startSource();
+    }
+    return input!.listen();
+  },
+  pause: () => input?.pause(),
+  setDevice(deviceId: string) {
+    store.inputSettings({ deviceId });
+    if (store.get().input?.status === "listening") void input?.listen();
+  },
+  setMonitor(patch: { monitor?: boolean; volume?: number }) {
+    store.inputSettings(patch);
+    input?.applyMonitor();
+  },
   close() {
     store.settings({ mode: "demo" });
     startSource();

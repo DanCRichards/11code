@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import bundled from "../../data/codebook.json";
 import type { Call, Codebook } from "./core/types";
 
-export type Mode = "demo" | "file" | "backend";
+export type Mode = "demo" | "file" | "input" | "backend";
 
 export interface SimSettings {
   auto: boolean;
@@ -11,16 +11,33 @@ export interface SimSettings {
   sound: boolean;
 }
 
+export interface InputSettings {
+  deviceId: string; // "" = the browser's default input
+  monitor: boolean; // play the input to the speakers/headphones
+  volume: number; // 0-1 monitor volume
+}
+
+export interface InputState {
+  status: "idle" | "starting" | "listening" | "error";
+  devices: { id: string; label: string }[];
+  level: number; // 0-1 input level (RMS, scaled)
+  peak: number; // 0-1 recent peak, to spot clipping
+  error?: string;
+  heard: number; // calls decoded this session
+  rate?: number; // capture sample rate
+}
+
 export interface Settings {
   mode: Mode;
   backendUrl: string; // "" = same origin as the page
   apiKey: string;
   sim: SimSettings;
+  input: InputSettings;
   dismissed: string[]; // inbox keys the user chose to ignore
 }
 
 export interface Connection {
-  status: "demo" | "file" | "connecting" | "live" | "reconnecting" | "error";
+  status: "demo" | "file" | "input" | "connecting" | "live" | "reconnecting" | "error";
   message?: string;
 }
 
@@ -50,6 +67,7 @@ export interface State {
   settings: Settings;
   connection: Connection;
   player?: Player;
+  input?: InputState;
 }
 
 export const BUNDLED = bundled as unknown as Codebook;
@@ -78,12 +96,17 @@ const DEFAULT_SETTINGS: Settings = {
   backendUrl: "",
   apiKey: "",
   sim: { auto: true, speed: 20, snr: 8, sound: false },
+  input: { deviceId: "", monitor: true, volume: 0.8 },
   dismissed: [],
 };
 
 function initialSettings(): Settings {
   const saved = load<Partial<Settings>>("tb.settings") ?? {};
-  const s: Settings = { ...DEFAULT_SETTINGS, ...saved, sim: { ...DEFAULT_SETTINGS.sim, ...saved.sim } };
+  const s: Settings = {
+    ...DEFAULT_SETTINGS, ...saved,
+    sim: { ...DEFAULT_SETTINGS.sim, ...saved.sim },
+    input: { ...DEFAULT_SETTINGS.input, ...saved.input },
+  };
   s.sim.sound = false; // audio needs a tap each visit
   // ?backend=https://host:8080 (or #backend=... is not allowed in some hosts) preselects live mode.
   try {
@@ -117,11 +140,14 @@ export const store = {
   },
   settings(patch: Partial<Settings>) {
     const settings = { ...state.settings, ...patch };
-    save("tb.settings", { ...settings, sim: { ...settings.sim } });
+    save("tb.settings", { ...settings, sim: { ...settings.sim }, input: { ...settings.input } });
     store.set({ settings });
   },
   sim(patch: Partial<SimSettings>) {
     store.settings({ sim: { ...state.settings.sim, ...patch } });
+  },
+  inputSettings(patch: Partial<InputSettings>) {
+    store.settings({ input: { ...state.settings.input, ...patch } });
   },
   addCalls(calls: Call[]) {
     if (!calls.length) return;

@@ -34,6 +34,7 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 - **Appliances:** every fire engine with its current status, searchable and filterable.
 - **Stations:** last turnout, turnouts today and appliance statuses for every station.
 - **Log:** every call, with filters for turnouts, statuses, priority calls, unknown codes and unreadable calls.
+- **Audio input:** listen to a scanner through a microphone, line-in or USB sound card. Calls are decoded live in the browser, and the input can be played through your speakers or headphones at the same time, with a level meter to set the scanner volume. Needs https (the Pages site is) and a browser that allows audio input.
 - **Recordings:** open an audio file or phone video (or a generated sample). It's decoded in the browser, then plays back with a waveform scrubber; each call appears on the board as you hear it. Tap a call to jump to it.
 - **Codebook:** the unknown-codes inbox (assign a heard code to a station or appliance, with suggestions), editors for stations, appliances, turnout codes and message meanings, the data source switch, and JSON import/export. In live mode, edits are saved to the backend for everyone. In demo mode they're saved in your browser.
 
