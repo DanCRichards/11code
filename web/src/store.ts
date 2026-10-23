@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import bundled from "../../data/codebook.json";
 import type { Call, Codebook } from "./core/types";
 
-export type Mode = "demo" | "backend";
+export type Mode = "demo" | "file" | "backend";
 
 export interface SimSettings {
   auto: boolean;
@@ -20,8 +20,26 @@ export interface Settings {
 }
 
 export interface Connection {
-  status: "demo" | "connecting" | "live" | "reconnecting" | "error";
+  status: "demo" | "file" | "connecting" | "live" | "reconnecting" | "error";
   message?: string;
+}
+
+/** A call found in an imported recording, at `offset` seconds into it. */
+export interface FileCall {
+  offset: number;
+  call: Call;
+}
+
+export interface Player {
+  name: string;
+  duration: number;
+  position: number; // seconds
+  playing: boolean;
+  decoding: number | null; // progress 0-1 while decoding, else null
+  found: FileCall[];
+  envelope: number[]; // 0-1 loudness per bin, for the scrubber
+  reveal: "play" | "all"; // show calls as playback reaches them, or all at once
+  error?: string;
 }
 
 export interface State {
@@ -31,6 +49,7 @@ export interface State {
   lastCall?: Call;
   settings: Settings;
   connection: Connection;
+  player?: Player;
 }
 
 export const BUNDLED = bundled as unknown as Codebook;

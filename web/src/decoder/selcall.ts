@@ -281,3 +281,29 @@ export function decode(x: Float32Array, fs: number): Decoded[] {
   }
   return events;
 }
+
+/**
+ * Decode a long recording in overlapping chunks, yielding between chunks so
+ * the page stays responsive. Mirrors selcall/stream.py: a call is taken from
+ * the first chunk that holds all of it, and duplicates from the overlap are
+ * dropped.
+ */
+export async function decodeLong(x: Float32Array, fs: number, onProgress?: (p: number) => void): Promise<Decoded[]> {
+  const chunk = 20 * fs, hop = 18 * fs;
+  const out: Decoded[] = [];
+  for (let a = 0; a < x.length; a += hop) {
+    const last = a + chunk >= x.length;
+    const t0 = a / fs, end = Math.min(x.length, a + chunk) / fs;
+    for (const ev of decode(x.subarray(a, a + chunk), fs)) {
+      const start = ev.start + t0;
+      if (a > 0 && ev.start < 0.4) continue; // front cut off; the previous chunk had it whole
+      if (!last && start > end - 0.6) continue; // may run past this chunk; the next one has it
+      if (out.some((o) => Math.abs(o.start - start) < 0.15)) continue;
+      out.push({ ...ev, start });
+    }
+    onProgress?.(Math.min(1, (a + chunk) / x.length));
+    if (last) break;
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return out.sort((p, q) => p.start - q.start);
+}

@@ -3,15 +3,18 @@ import { validateCodebook } from "../core/validate";
 import { BUNDLED, save, store } from "../store";
 import { BackendSource } from "./backend";
 import { DemoSource } from "./demo";
+import { FileSource } from "./file";
 
 let demo: DemoSource | undefined;
 let backend: BackendSource | undefined;
+let file: FileSource | undefined;
 
 /** Start the source for the current mode, stopping the previous one. */
 export function startSource() {
   demo?.stop();
   backend?.stop();
-  demo = backend = undefined;
+  file?.stop();
+  demo = backend = file = undefined;
   const { mode, backendUrl } = store.get().settings;
   if (mode === "backend") {
     backend = new BackendSource(BackendSource.normalise(backendUrl));
@@ -19,8 +22,13 @@ export function startSource() {
   } else {
     const local = (() => { try { return JSON.parse(localStorage.getItem("tb.codebook.local") ?? "null"); } catch { return null; } })();
     store.set({ codebook: local ?? BUNDLED, codebookOrigin: local ? "local" : "bundled", calls: [] });
-    demo = new DemoSource();
-    demo.start();
+    if (mode === "file") {
+      file = new FileSource();
+      file.start();
+    } else {
+      demo = new DemoSource();
+      demo.start();
+    }
   }
 }
 
@@ -28,6 +36,24 @@ export const demoActions = {
   turnout: (stationId?: string) => demo?.turnoutNow(stationId) ?? false,
   priority: () => demo?.priorityCall() ?? false,
   unlockAudio: () => demo?.unlockAudio(),
+};
+
+/** Switch to the recording player (if needed) and load a file or the sample. */
+export const fileActions = {
+  open(f?: File) {
+    if (store.get().settings.mode !== "file" || !file) {
+      store.settings({ mode: "file" });
+      startSource();
+    }
+    return f ? file!.load(f) : file!.loadSample();
+  },
+  toggle: () => file?.toggle(),
+  seek: (t: number) => file?.seek(t),
+  reveal: (r: "play" | "all") => file?.setReveal(r),
+  close() {
+    store.settings({ mode: "demo" });
+    startSource();
+  },
 };
 
 /** Save an edited codebook: to the backend in live mode, else this browser. */

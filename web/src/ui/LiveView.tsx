@@ -6,6 +6,7 @@ import { demoActions } from "../sources/controller";
 import { store, useStore } from "../store";
 import { ago, clockTime, EventPill, Seg, stateVar, ToneStrip, useBoard } from "./common";
 import { MapView } from "./MapView";
+import { ImportPanel } from "./Player";
 import type { Nav } from "./nav";
 
 export function useWindows() {
@@ -52,7 +53,9 @@ export function LiveView({ nav }: { nav: Nav }) {
           <button className="tile" onClick={() => nav.tab("data", "inbox")}><span>Unknown codes</span><b>{board.inbox.length}</b></button>
         </div>
         <MapView board={board} ix={ix} recentMs={recentMs} now={now} onSelect={nav.station} />
+        {mode === "file" && <ImportPanel />}
         {mode === "demo" && <DemoRadio />}
+        {mode === "demo" && <ImportPanel compact />}
       </div>
 
       <div className="feeds">
@@ -128,7 +131,7 @@ function LastCall({ ev, name }: { ev: Interpreted; name: string }) {
   const c = ev.call;
   return (
     <section className="panel">
-      <h2>Last call decoded <small>{c.source === "demo" ? "from synthesised audio" : c.source}</small></h2>
+      <h2>Last call decoded <small>{c.source === "demo" ? "from synthesised audio" : c.source === "file" ? "from the recording" : "from the radio"}</small></h2>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <span className="readout-code">{c.code || "no tones"}</span>
         <EventPill ev={ev} />

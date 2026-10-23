@@ -7,6 +7,7 @@ import { LiveView } from "./ui/LiveView";
 import { AppliancesView, LogView, StationsView } from "./ui/ListViews";
 import type { Nav, Tab } from "./ui/nav";
 import { ApplianceSheet, StationSheet } from "./ui/Sheets";
+import { PlayerBar } from "./ui/Player";
 
 const TABS: [Tab, string, keyof typeof Icon][] = [
   ["live", "Live", "live"], ["appliances", "Appliances", "units"], ["stations", "Stations", "stations"],
@@ -25,6 +26,7 @@ export function App() {
   const conn = useStore((s) => s.connection);
   const mode = useStore((s) => s.settings.mode);
   const speed = useStore((s) => s.settings.sim.speed);
+  const hasPlayer = useStore((s) => s.settings.mode === "file" && !!s.player && (s.player.duration > 0 || s.player.decoding !== null));
   const { board } = useBoard();
   const now = useNow(1000);
 
@@ -56,14 +58,14 @@ export function App() {
     appliance: (id) => setSheet({ kind: "appliance", id }),
   };
 
-  const connLabel = mode === "demo" ? `Demo · ${speed}×` : { connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Offline", demo: "Demo" }[conn.status];
+  const connLabel = mode === "demo" ? `Demo · ${speed}×` : mode === "file" ? "Recording" : { connecting: "Connecting…", live: "Live", reconnecting: "Reconnecting…", error: "Offline", demo: "Demo", file: "Recording" }[conn.status];
 
   return (
-    <div className="shell">
+    <div className={`shell${hasPlayer ? " has-player" : ""}`}>
       <header className="top">
         <h1 className="brand">Auckland Turnouts</h1>
         <span className="spacer" />
-        <button className={`conn ${mode === "demo" ? "demo" : conn.status}`} onClick={() => go("data", "source")} title="Data source">
+        <button className={`conn ${mode === "backend" ? conn.status : "demo"}`} onClick={() => go("data", "source")} title="Data source">
           <i />{connLabel}
         </button>
         <span className="clock"><b>{clockTime(now)}</b></span>
@@ -83,6 +85,7 @@ export function App() {
         {tab === "log" && <LogView nav={nav} filter={filter} />}
         {tab === "data" && <DataView sub={filter} />}
       </main>
+      <PlayerBar />
       {sheet?.kind === "station" && <StationSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
       {sheet?.kind === "appliance" && <ApplianceSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
     </div>

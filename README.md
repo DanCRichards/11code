@@ -34,11 +34,12 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 - **Appliances:** every fire engine with its current status, searchable and filterable.
 - **Stations:** last turnout, turnouts today and appliance statuses for every station.
 - **Log:** every call, with filters for turnouts, statuses, priority calls, unknown codes and unreadable calls.
+- **Recordings:** open an audio file or phone video (or a generated sample). It's decoded in the browser, then plays back with a waveform scrubber; each call appears on the board as you hear it. Tap a call to jump to it.
 - **Codebook:** the unknown-codes inbox (assign a heard code to a station or appliance, with suggestions), editors for stations, appliances, turnout codes and message meanings, the data source switch, and JSON import/export. In live mode, edits are saved to the backend for everyone. In demo mode they're saved in your browser.
 
 ### GitHub Pages
 
-`.github/workflows/pages.yml` builds `web/` and deploys it on each push to `master`. To turn it on, go to the repository's **Settings → Pages** and set **Source** to **GitHub Actions**. The Pages site runs in demo mode. To point it at your backend, open **Codebook → Data source**, or add `?backend=https://your-backend` to the URL. Browsers only let an https page talk to an https backend.
+`.github/workflows/pages.yml` builds `web/` on each push to `master` and publishes it to the `gh-pages` branch. To serve it, go to the repository's **Settings → Pages** and set **Source** to **Deploy from a branch**, branch **gh-pages**. The Pages site runs in demo mode. To point it at your backend, open **Codebook → Data source**, or add `?backend=https://your-backend` to the URL. Browsers only let an https page talk to an https backend.
 
 ## What the decoder knows about FENZ SelCall
 
