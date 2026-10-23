@@ -70,6 +70,19 @@ export class BackendSource {
     store.set({ codebook: body as Codebook, codebookOrigin: "backend" });
     return body as Codebook;
   }
+
+  /** Post a call (e.g. a status set by hand); it comes back to every viewer over the stream. */
+  async postCall(code: string, source: string, apiKey: string) {
+    const res = await fetch(this.url("/api/calls"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+      body: JSON.stringify({ code, kind: "appliance-msg", confidence: 1, source }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Couldn't send (HTTP ${res.status})`);
+    }
+  }
 }
 
 interface RawCall { id: string; time: string; code: string; kind: Call["kind"]; confidence: number; source: string }

@@ -1,6 +1,7 @@
 import { boardText } from "../core/derive";
 import { demoActions } from "../sources/controller";
 import { store, useStore } from "../store";
+import { KCodePicker } from "./KCodePicker";
 import { ago, clockTime, EventPill, Sheet, StatePill, stateVar, useBoard } from "./common";
 import type { Nav } from "./nav";
 
@@ -73,6 +74,8 @@ export function ApplianceSheet({ id, nav, onClose }: { id: string; nav: Nav; onC
   const codes = codebook.turnoutCodes.filter((c) => c.applianceId === id);
   return (
     <Sheet title={`${st?.name ?? ""} ${a.callsign}`} sub={<><StatePill state={b.state} status={b.status} /> {b.lastHeard && <span>· {ago(b.lastHeard, now)}</span>}</>} onClose={onClose}>
+      <h3 className="section-title">Set K code</h3>
+      <KCodePicker applianceId={id} current={b.status?.kCode} />
       <dl className="kv">
         <dt>Station</dt><dd><button className="linkbtn" onClick={() => nav.station(a.stationId)}>{st?.name}</button></dd>
         <dt>Selcall ID</dt><dd><code>{a.selcallId || "unknown"}</code>{!a.selcallVerified && <span className="tag">placeholder</span>}</dd>

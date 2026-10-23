@@ -108,6 +108,20 @@ export function resetLocalCodebook() {
   store.set({ codebook: BUNDLED, codebookOrigin: "bundled" });
 }
 
+let manualSeq = 0;
+
+/** Set a truck's status by hand, as if it had sent that K code. In live mode with an
+ *  editing key it goes to the backend (so everyone sees it); otherwise it's this browser only. */
+export async function setTruckStatus(applianceId: string, suffix: string): Promise<void> {
+  const a = store.get().codebook.appliances.find((x) => x.id === applianceId);
+  if (!a?.selcallId) throw new Error("This truck has no selcall ID, so its status can't be set.");
+  const code = `${a.selcallId}-${suffix}`;
+  const key = store.get().settings.apiKey;
+  if (backend && key) { await backend.postCall(code, "manual", key); return; }
+  store.addCalls([{ id: `m${Date.now().toString(36)}${(manualSeq++).toString(36)}`, time: Date.now(), code,
+                    kind: "appliance-msg", confidence: 1, source: "manual" }]);
+}
+
 /** Probe for a backend at the page's own origin (when the server hosts the app). */
 export async function detectSameOriginBackend(): Promise<boolean> {
   if (typeof location === "undefined" || !/^https?:$/.test(location.protocol)) return false;

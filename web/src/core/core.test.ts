@@ -149,11 +149,27 @@ describe("priority alarm and un-mute", () => {
   });
 });
 
-describe("TV grid", () => {
-  it("picks the column count that makes tiles biggest", async () => {
-    const { fitGrid } = await import("../ui/MyBoard");
-    expect(fitGrid(6, 1920, 900, 12)).toEqual({ cols: 3, rows: 2 });
-    expect(fitGrid(12, 1920, 900, 12)).toEqual({ cols: 4, rows: 3 });
-    expect(fitGrid(1, 1920, 900)).toEqual({ cols: 1, rows: 1 });
+describe("TV clusters", () => {
+  it("makes tiles as big as fit, one cluster per station", async () => {
+    const { fitClusters } = await import("../ui/MyBoard");
+    const fits = (counts: number[], w: number, h: number) => {
+      const f = fitClusters(counts, w, h, 14);
+      const pad = f.th * 0.08, inner = f.th * 0.08, head = f.th * 0.3;
+      let x = 0, line = 0, total = 0;
+      counts.forEach((n, i) => {
+        const cw = f.cols[i] * f.tw + (f.cols[i] - 1) * inner + 2 * pad;
+        const ch = head + Math.ceil(n / f.cols[i]) * (f.th + inner) - inner + 2 * pad;
+        if (x > 0 && x + cw > w) { total += line + 14; x = 0; line = 0; }
+        x += cw + 14; line = Math.max(line, ch);
+      });
+      return { f, h: total + line };
+    };
+    const one = fits([1], 1920, 900);
+    expect(one.h).toBeLessThanOrEqual(900);
+    expect(one.f.th).toBeGreaterThan(500); // a single truck nearly fills the screen
+    const many = fits([4, 2, 1, 1, 1, 2], 1920, 900);
+    expect(many.h).toBeLessThanOrEqual(900);
+    expect(many.f.th).toBeGreaterThan(150);
+    expect(fitClusters([12], 1920, 900).cols[0]).toBeLessThan(12); // a big station wraps onto rows
   });
 });
