@@ -1,0 +1,33 @@
+{
+  "_note": "Ground truth read by hand from tone-energy plots. 'code' null = burst present but not confidently readable: decodes there are neither scored nor counted as false alarms.",
+  "3824dfaa": [
+    {"t": 0.74, "code": "182850"},
+    {"t": 1.94, "code": "182821"},
+    {"t": 4.10, "code": "182820"}
+  ],
+  "59533760": [
+    {"t": 1.53, "code": "182201"},
+    {"t": 3.43, "code": "182200"}
+  ],
+  "059dbcae": [
+    {"t": 0.30, "code": null, "end": 0.46},
+    {"t": 3.35, "code": null, "end": 3.60},
+    {"t": 4.24, "code": "182832"},
+    {"t": 6.43, "code": "182830"},
+    {"t": 6.70, "code": null, "end": 6.90},
+    {"t": 7.58, "code": null, "end": 7.90},
+    {"t": 9.65, "code": null, "end": 10.00},
+    {"t": 10.95, "code": null, "end": 11.30},
+    {"t": 13.00, "code": null, "end": 13.40},
+    {"t": 14.28, "code": "182831"},
+    {"t": 16.52, "code": "182830"},
+    {"t": 16.80, "code": null, "end": 16.90}
+  ],
+  "08d2f248": [
+    {"t": 1.70, "code": null, "end": 2.10},
+    {"t": 3.65, "code": null, "end": 4.05},
+    {"t": 5.68, "code": null, "end": 6.10},
+    {"t": 6.96, "code": null, "end": 7.35},
+    {"t": 9.20, "code": null, "end": 9.60}
+  ]
+}
