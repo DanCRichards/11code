@@ -1,0 +1,1131 @@
+{
+ "schema": 1,
+ "version": 1,
+ "updatedAt": "2026-10-23T10:03:42+00:00",
+ "region": "Auckland",
+ "stations": [
+  {
+   "id": "auckland-city",
+   "name": "Auckland City",
+   "number": "20",
+   "lat": -36.8563,
+   "lon": 174.7598
+  },
+  {
+   "id": "remuera",
+   "name": "Remuera",
+   "number": "21",
+   "lat": -36.879,
+   "lon": 174.7985
+  },
+  {
+   "id": "mt-wellington",
+   "name": "Mt Wellington",
+   "number": "23",
+   "lat": -36.905,
+   "lon": 174.84
+  },
+  {
+   "id": "st-heliers",
+   "name": "St Heliers",
+   "number": "24",
+   "lat": -36.8545,
+   "lon": 174.8585
+  },
+  {
+   "id": "parnell",
+   "name": "Parnell",
+   "number": "25",
+   "lat": -36.858,
+   "lon": 174.78
+  },
+  {
+   "id": "grey-lynn",
+   "name": "Grey Lynn",
+   "number": "26",
+   "lat": -36.8608,
+   "lon": 174.7383
+  },
+  {
+   "id": "ellerslie",
+   "name": "Ellerslie",
+   "number": "27",
+   "lat": -36.899,
+   "lon": 174.808
+  },
+  {
+   "id": "onehunga",
+   "name": "Onehunga",
+   "number": "",
+   "lat": -36.9233,
+   "lon": 174.7845
+  },
+  {
+   "id": "howick",
+   "name": "Howick",
+   "number": "32",
+   "lat": -36.8985,
+   "lon": 174.929
+  },
+  {
+   "id": "papatoetoe",
+   "name": "Papatoetoe",
+   "number": "34",
+   "lat": -36.979,
+   "lon": 174.85
+  },
+  {
+   "id": "mangere",
+   "name": "Mangere",
+   "number": "35",
+   "lat": -36.969,
+   "lon": 174.798
+  },
+  {
+   "id": "manurewa",
+   "name": "Manurewa",
+   "number": "",
+   "lat": -37.023,
+   "lon": 174.896
+  },
+  {
+   "id": "papakura",
+   "name": "Papakura",
+   "number": "38",
+   "lat": -37.064,
+   "lon": 174.944
+  },
+  {
+   "id": "avondale",
+   "name": "Avondale",
+   "number": "60",
+   "lat": -36.8968,
+   "lon": 174.6925
+  },
+  {
+   "id": "balmoral",
+   "name": "Balmoral",
+   "number": "61",
+   "lat": -36.889,
+   "lon": 174.747
+  },
+  {
+   "id": "mt-roskill",
+   "name": "Mt Roskill",
+   "number": "62",
+   "lat": -36.9105,
+   "lon": 174.737
+  },
+  {
+   "id": "glen-eden",
+   "name": "Glen Eden",
+   "number": "64",
+   "lat": -36.911,
+   "lon": 174.651
+  },
+  {
+   "id": "henderson",
+   "name": "Henderson",
+   "number": "65",
+   "lat": -36.88,
+   "lon": 174.63
+  },
+  {
+   "id": "west-harbour",
+   "name": "West Harbour",
+   "number": "67",
+   "lat": -36.818,
+   "lon": 174.617
+  },
+  {
+   "id": "titirangi",
+   "name": "Titirangi",
+   "number": "69",
+   "lat": -36.937,
+   "lon": 174.656
+  },
+  {
+   "id": "takapuna",
+   "name": "Takapuna",
+   "number": "80",
+   "lat": -36.788,
+   "lon": 174.77
+  },
+  {
+   "id": "devonport",
+   "name": "Devonport",
+   "number": "81",
+   "lat": -36.829,
+   "lon": 174.796
+  },
+  {
+   "id": "birkenhead",
+   "name": "Birkenhead",
+   "number": "82",
+   "lat": -36.8085,
+   "lon": 174.727
+  },
+  {
+   "id": "east-coast-bays",
+   "name": "East Coast Bays",
+   "number": "83",
+   "lat": -36.747,
+   "lon": 174.74
+  },
+  {
+   "id": "greenhithe",
+   "name": "Greenhithe",
+   "number": "84",
+   "lat": -36.773,
+   "lon": 174.689
+  },
+  {
+   "id": "albany",
+   "name": "Albany",
+   "number": "85",
+   "lat": -36.73,
+   "lon": 174.699
+  },
+  {
+   "id": "kumeu",
+   "name": "Kumeu",
+   "number": "86",
+   "lat": -36.777,
+   "lon": 174.558
+  },
+  {
+   "id": "muriwai",
+   "name": "Muriwai",
+   "number": "87",
+   "lat": -36.832,
+   "lon": 174.429
+  },
+  {
+   "id": "shelly-beach",
+   "name": "Shelly Beach",
+   "number": "88",
+   "lat": -36.597,
+   "lon": 174.353
+  },
+  {
+   "id": "helensville",
+   "name": "Helensville",
+   "number": "89",
+   "lat": -36.679,
+   "lon": 174.45
+  },
+  {
+   "id": "silverdale",
+   "name": "Silverdale",
+   "number": "90",
+   "lat": -36.617,
+   "lon": 174.677
+  },
+  {
+   "id": "manly",
+   "name": "Manly",
+   "number": "91",
+   "lat": -36.639,
+   "lon": 174.751
+  }
+ ],
+ "appliances": [
+  {
+   "id": "201",
+   "callsign": "201",
+   "stationId": "auckland-city",
+   "type": "",
+   "selcallId": "CB596",
+   "selcallVerified": false
+  },
+  {
+   "id": "205",
+   "callsign": "205",
+   "stationId": "auckland-city",
+   "type": "",
+   "selcallId": "D95D1",
+   "selcallVerified": true
+  },
+  {
+   "id": "206",
+   "callsign": "206",
+   "stationId": "auckland-city",
+   "type": "",
+   "selcallId": "D7811",
+   "selcallVerified": true
+  },
+  {
+   "id": "207",
+   "callsign": "207",
+   "stationId": "auckland-city",
+   "type": "",
+   "selcallId": "D62E1",
+   "selcallVerified": true
+  },
+  {
+   "id": "211",
+   "callsign": "211",
+   "stationId": "remuera",
+   "type": "",
+   "selcallId": "C1510",
+   "selcallVerified": false
+  },
+  {
+   "id": "237",
+   "callsign": "237",
+   "stationId": "mt-wellington",
+   "type": "",
+   "selcallId": "C5611",
+   "selcallVerified": false
+  },
+  {
+   "id": "241",
+   "callsign": "241",
+   "stationId": "st-heliers",
+   "type": "",
+   "selcallId": "C137A",
+   "selcallVerified": false
+  },
+  {
+   "id": "251",
+   "callsign": "251",
+   "stationId": "parnell",
+   "type": "",
+   "selcallId": "C62F3",
+   "selcallVerified": false
+  },
+  {
+   "id": "255",
+   "callsign": "255",
+   "stationId": "parnell",
+   "type": "",
+   "selcallId": "C2F4D",
+   "selcallVerified": false
+  },
+  {
+   "id": "261",
+   "callsign": "261",
+   "stationId": "grey-lynn",
+   "type": "",
+   "selcallId": "D72F1",
+   "selcallVerified": true
+  },
+  {
+   "id": "271",
+   "callsign": "271",
+   "stationId": "ellerslie",
+   "type": "",
+   "selcallId": "C11D5",
+   "selcallVerified": false
+  },
+  {
+   "id": "274",
+   "callsign": "274",
+   "stationId": "ellerslie",
+   "type": "",
+   "selcallId": "CD9DC",
+   "selcallVerified": false
+  },
+  {
+   "id": "321",
+   "callsign": "321",
+   "stationId": "howick",
+   "type": "",
+   "selcallId": "CBC23",
+   "selcallVerified": false
+  },
+  {
+   "id": "322",
+   "callsign": "322",
+   "stationId": "howick",
+   "type": "",
+   "selcallId": "CA085",
+   "selcallVerified": false
+  },
+  {
+   "id": "341",
+   "callsign": "341",
+   "stationId": "papatoetoe",
+   "type": "",
+   "selcallId": "C6B15",
+   "selcallVerified": false
+  },
+  {
+   "id": "347",
+   "callsign": "347",
+   "stationId": "papatoetoe",
+   "type": "",
+   "selcallId": "C0F24",
+   "selcallVerified": false
+  },
+  {
+   "id": "351",
+   "callsign": "351",
+   "stationId": "mangere",
+   "type": "",
+   "selcallId": "CBA8D",
+   "selcallVerified": false
+  },
+  {
+   "id": "381",
+   "callsign": "381",
+   "stationId": "papakura",
+   "type": "",
+   "selcallId": "CB8F8",
+   "selcallVerified": false
+  },
+  {
+   "id": "607",
+   "callsign": "607",
+   "stationId": "avondale",
+   "type": "",
+   "selcallId": "CAB3F",
+   "selcallVerified": false
+  },
+  {
+   "id": "611",
+   "callsign": "611",
+   "stationId": "balmoral",
+   "type": "",
+   "selcallId": "C5861",
+   "selcallVerified": true
+  },
+  {
+   "id": "621",
+   "callsign": "621",
+   "stationId": "mt-roskill",
+   "type": "",
+   "selcallId": "CB712",
+   "selcallVerified": false
+  },
+  {
+   "id": "641",
+   "callsign": "641",
+   "stationId": "glen-eden",
+   "type": "",
+   "selcallId": "C6604",
+   "selcallVerified": false
+  },
+  {
+   "id": "651",
+   "callsign": "651",
+   "stationId": "henderson",
+   "type": "",
+   "selcallId": "CB57C",
+   "selcallVerified": false
+  },
+  {
+   "id": "657",
+   "callsign": "657",
+   "stationId": "henderson",
+   "type": "",
+   "selcallId": "C588B",
+   "selcallVerified": false
+  },
+  {
+   "id": "671",
+   "callsign": "671",
+   "stationId": "west-harbour",
+   "type": "",
+   "selcallId": "C646F",
+   "selcallVerified": false
+  },
+  {
+   "id": "672",
+   "callsign": "672",
+   "stationId": "west-harbour",
+   "type": "",
+   "selcallId": "C57B1",
+   "selcallVerified": false
+  },
+  {
+   "id": "691",
+   "callsign": "691",
+   "stationId": "titirangi",
+   "type": "",
+   "selcallId": "C1351",
+   "selcallVerified": false
+  },
+  {
+   "id": "692",
+   "callsign": "692",
+   "stationId": "titirangi",
+   "type": "",
+   "selcallId": "C06A3",
+   "selcallVerified": false
+  },
+  {
+   "id": "801",
+   "callsign": "801",
+   "stationId": "takapuna",
+   "type": "",
+   "selcallId": "CBA64",
+   "selcallVerified": false
+  },
+  {
+   "id": "807",
+   "callsign": "807",
+   "stationId": "takapuna",
+   "type": "",
+   "selcallId": "D582C",
+   "selcallVerified": true
+  },
+  {
+   "id": "811",
+   "callsign": "811",
+   "stationId": "devonport",
+   "type": "",
+   "selcallId": "C1ADC",
+   "selcallVerified": false
+  },
+  {
+   "id": "812",
+   "callsign": "812",
+   "stationId": "devonport",
+   "type": "",
+   "selcallId": "C0D30",
+   "selcallVerified": false
+  },
+  {
+   "id": "821",
+   "callsign": "821",
+   "stationId": "birkenhead",
+   "type": "",
+   "selcallId": "D8611",
+   "selcallVerified": true
+  },
+  {
+   "id": "822",
+   "callsign": "822",
+   "stationId": "birkenhead",
+   "type": "",
+   "selcallId": "C5CA8",
+   "selcallVerified": false
+  },
+  {
+   "id": "831",
+   "callsign": "831",
+   "stationId": "east-coast-bays",
+   "type": "",
+   "selcallId": "DB884",
+   "selcallVerified": true
+  },
+  {
+   "id": "832",
+   "callsign": "832",
+   "stationId": "east-coast-bays",
+   "type": "",
+   "selcallId": "DB531",
+   "selcallVerified": true
+  },
+  {
+   "id": "841",
+   "callsign": "841",
+   "stationId": "greenhithe",
+   "type": "",
+   "selcallId": "C1848",
+   "selcallVerified": false
+  },
+  {
+   "id": "851",
+   "callsign": "851",
+   "stationId": "albany",
+   "type": "",
+   "selcallId": "C67B1",
+   "selcallVerified": false
+  },
+  {
+   "id": "861",
+   "callsign": "861",
+   "stationId": "kumeu",
+   "type": "",
+   "selcallId": "CB63A",
+   "selcallVerified": false
+  },
+  {
+   "id": "862",
+   "callsign": "862",
+   "stationId": "kumeu",
+   "type": "",
+   "selcallId": "CA98C",
+   "selcallVerified": false
+  },
+  {
+   "id": "867",
+   "callsign": "867",
+   "stationId": "kumeu",
+   "type": "",
+   "selcallId": "C5949",
+   "selcallVerified": false
+  },
+  {
+   "id": "871",
+   "callsign": "871",
+   "stationId": "muriwai",
+   "type": "",
+   "selcallId": "C16A3",
+   "selcallVerified": false
+  },
+  {
+   "id": "881",
+   "callsign": "881",
+   "stationId": "shelly-beach",
+   "type": "",
+   "selcallId": "C652C",
+   "selcallVerified": false
+  },
+  {
+   "id": "891",
+   "callsign": "891",
+   "stationId": "helensville",
+   "type": "",
+   "selcallId": "CB495",
+   "selcallVerified": false
+  },
+  {
+   "id": "901",
+   "callsign": "901",
+   "stationId": "silverdale",
+   "type": "",
+   "selcallId": "C141F",
+   "selcallVerified": false
+  },
+  {
+   "id": "907",
+   "callsign": "907",
+   "stationId": "silverdale",
+   "type": "",
+   "selcallId": "CA62D",
+   "selcallVerified": false
+  },
+  {
+   "id": "911",
+   "callsign": "911",
+   "stationId": "manly",
+   "type": "",
+   "selcallId": "C6387",
+   "selcallVerified": false
+  }
+ ],
+ "turnoutCodes": [
+  {
+   "code": "182200",
+   "stationId": "auckland-city",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182201",
+   "stationId": "auckland-city",
+   "applianceId": "201",
+   "source": "list"
+  },
+  {
+   "code": "182205",
+   "stationId": "auckland-city",
+   "applianceId": "205",
+   "source": "pattern"
+  },
+  {
+   "code": "182206",
+   "stationId": "auckland-city",
+   "applianceId": "206",
+   "source": "pattern"
+  },
+  {
+   "code": "182207",
+   "stationId": "auckland-city",
+   "applianceId": "207",
+   "source": "pattern"
+  },
+  {
+   "code": "182210",
+   "stationId": "remuera",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182211",
+   "stationId": "remuera",
+   "applianceId": "211",
+   "source": "list"
+  },
+  {
+   "code": "182230",
+   "stationId": "mt-wellington",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182237",
+   "stationId": "mt-wellington",
+   "applianceId": "237",
+   "source": "list"
+  },
+  {
+   "code": "182240",
+   "stationId": "st-heliers",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182241",
+   "stationId": "st-heliers",
+   "applianceId": "241",
+   "source": "list"
+  },
+  {
+   "code": "182250",
+   "stationId": "parnell",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182251",
+   "stationId": "parnell",
+   "applianceId": "251",
+   "source": "list"
+  },
+  {
+   "code": "182255",
+   "stationId": "parnell",
+   "applianceId": "255",
+   "source": "list"
+  },
+  {
+   "code": "182260",
+   "stationId": "grey-lynn",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182261",
+   "stationId": "grey-lynn",
+   "applianceId": "261",
+   "source": "list"
+  },
+  {
+   "code": "182270",
+   "stationId": "ellerslie",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182271",
+   "stationId": "ellerslie",
+   "applianceId": "271",
+   "source": "list"
+  },
+  {
+   "code": "182274",
+   "stationId": "ellerslie",
+   "applianceId": "274",
+   "source": "pattern"
+  },
+  {
+   "code": "182320",
+   "stationId": "howick",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182321",
+   "stationId": "howick",
+   "applianceId": "321",
+   "source": "pattern"
+  },
+  {
+   "code": "182322",
+   "stationId": "howick",
+   "applianceId": "322",
+   "source": "list"
+  },
+  {
+   "code": "182340",
+   "stationId": "papatoetoe",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182341",
+   "stationId": "papatoetoe",
+   "applianceId": "341",
+   "source": "list"
+  },
+  {
+   "code": "182347",
+   "stationId": "papatoetoe",
+   "applianceId": "347",
+   "source": "list"
+  },
+  {
+   "code": "182350",
+   "stationId": "mangere",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182351",
+   "stationId": "mangere",
+   "applianceId": "351",
+   "source": "list"
+  },
+  {
+   "code": "182380",
+   "stationId": "papakura",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182381",
+   "stationId": "papakura",
+   "applianceId": "381",
+   "source": "list"
+  },
+  {
+   "code": "182600",
+   "stationId": "avondale",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182607",
+   "stationId": "avondale",
+   "applianceId": "607",
+   "source": "list"
+  },
+  {
+   "code": "182610",
+   "stationId": "balmoral",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182611",
+   "stationId": "balmoral",
+   "applianceId": "611",
+   "source": "list"
+  },
+  {
+   "code": "182620",
+   "stationId": "mt-roskill",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182621",
+   "stationId": "mt-roskill",
+   "applianceId": "621",
+   "source": "list"
+  },
+  {
+   "code": "182640",
+   "stationId": "glen-eden",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182641",
+   "stationId": "glen-eden",
+   "applianceId": "641",
+   "source": "pattern"
+  },
+  {
+   "code": "182650",
+   "stationId": "henderson",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182651",
+   "stationId": "henderson",
+   "applianceId": "651",
+   "source": "pattern"
+  },
+  {
+   "code": "182657",
+   "stationId": "henderson",
+   "applianceId": "657",
+   "source": "pattern"
+  },
+  {
+   "code": "182670",
+   "stationId": "west-harbour",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182671",
+   "stationId": "west-harbour",
+   "applianceId": "671",
+   "source": "list"
+  },
+  {
+   "code": "182672",
+   "stationId": "west-harbour",
+   "applianceId": "672",
+   "source": "list"
+  },
+  {
+   "code": "182690",
+   "stationId": "titirangi",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182691",
+   "stationId": "titirangi",
+   "applianceId": "691",
+   "source": "list"
+  },
+  {
+   "code": "182692",
+   "stationId": "titirangi",
+   "applianceId": "692",
+   "source": "list"
+  },
+  {
+   "code": "182800",
+   "stationId": "takapuna",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182801",
+   "stationId": "takapuna",
+   "applianceId": "801",
+   "source": "list"
+  },
+  {
+   "code": "182807",
+   "stationId": "takapuna",
+   "applianceId": "807",
+   "source": "pattern"
+  },
+  {
+   "code": "182810",
+   "stationId": "devonport",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182811",
+   "stationId": "devonport",
+   "applianceId": "811",
+   "source": "list"
+  },
+  {
+   "code": "182812",
+   "stationId": "devonport",
+   "applianceId": "812",
+   "source": "list"
+  },
+  {
+   "code": "182820",
+   "stationId": "birkenhead",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182821",
+   "stationId": "birkenhead",
+   "applianceId": "821",
+   "source": "list"
+  },
+  {
+   "code": "182822",
+   "stationId": "birkenhead",
+   "applianceId": "822",
+   "source": "list"
+  },
+  {
+   "code": "182830",
+   "stationId": "east-coast-bays",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182831",
+   "stationId": "east-coast-bays",
+   "applianceId": "831",
+   "source": "list"
+  },
+  {
+   "code": "182832",
+   "stationId": "east-coast-bays",
+   "applianceId": "832",
+   "source": "list"
+  },
+  {
+   "code": "182840",
+   "stationId": "greenhithe",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182841",
+   "stationId": "greenhithe",
+   "applianceId": "841",
+   "source": "list"
+  },
+  {
+   "code": "182850",
+   "stationId": "albany",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182851",
+   "stationId": "albany",
+   "applianceId": "851",
+   "source": "list"
+  },
+  {
+   "code": "182860",
+   "stationId": "kumeu",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182861",
+   "stationId": "kumeu",
+   "applianceId": "861",
+   "source": "list"
+  },
+  {
+   "code": "182862",
+   "stationId": "kumeu",
+   "applianceId": "862",
+   "source": "list"
+  },
+  {
+   "code": "182867",
+   "stationId": "kumeu",
+   "applianceId": "867",
+   "source": "list"
+  },
+  {
+   "code": "182870",
+   "stationId": "muriwai",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182871",
+   "stationId": "muriwai",
+   "applianceId": "871",
+   "source": "list"
+  },
+  {
+   "code": "182880",
+   "stationId": "shelly-beach",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182881",
+   "stationId": "shelly-beach",
+   "applianceId": "881",
+   "source": "list"
+  },
+  {
+   "code": "182890",
+   "stationId": "helensville",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182891",
+   "stationId": "helensville",
+   "applianceId": "891",
+   "source": "list"
+  },
+  {
+   "code": "182900",
+   "stationId": "silverdale",
+   "applianceId": null,
+   "source": "pattern"
+  },
+  {
+   "code": "182901",
+   "stationId": "silverdale",
+   "applianceId": "901",
+   "source": "list"
+  },
+  {
+   "code": "182907",
+   "stationId": "silverdale",
+   "applianceId": "907",
+   "source": "list"
+  },
+  {
+   "code": "182910",
+   "stationId": "manly",
+   "applianceId": null,
+   "source": "list"
+  },
+  {
+   "code": "182911",
+   "stationId": "manly",
+   "applianceId": "911",
+   "source": "list"
+  }
+ ],
+ "callTypes": [
+  {
+   "final": "4",
+   "label": "Turnout acknowledgement",
+   "priority": false,
+   "verified": false
+  },
+  {
+   "final": "C",
+   "label": "Routine call",
+   "priority": false,
+   "verified": false
+  },
+  {
+   "final": "B",
+   "label": "Priority call",
+   "priority": true,
+   "verified": false
+  }
+ ],
+ "statusCodes": [
+  {
+   "suffix": "F1A0C2",
+   "kCode": "K1",
+   "label": "Responding",
+   "state": "responding",
+   "demo": true
+  },
+  {
+   "suffix": "F2A0C2",
+   "kCode": "K2",
+   "label": "At incident",
+   "state": "at-incident",
+   "demo": true
+  },
+  {
+   "suffix": "F3A0C2",
+   "kCode": "K3",
+   "label": "Out of area",
+   "state": "out-of-area",
+   "demo": true
+  },
+  {
+   "suffix": "F4A0C2",
+   "kCode": "K4",
+   "label": "Available on radio",
+   "state": "available-radio",
+   "demo": true
+  },
+  {
+   "suffix": "F7A0C2",
+   "kCode": "K7",
+   "label": "On station",
+   "state": "on-station",
+   "demo": true
+  }
+ ]
+}

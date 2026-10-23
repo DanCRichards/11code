@@ -1,3 +1,7 @@
 recordings/
 __pycache__/
 *.pyc
+node_modules/
+web/dist/
+web/dist-single/
+server-data/

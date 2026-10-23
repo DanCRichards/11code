@@ -200,9 +200,14 @@ def _slot_read(ev, times, labels, cfg):
         # Confidence covers the header, separator and the first 5 body slots
         # (missing body slots count against it).
         ev.confidence = float(min(c for _, c in picks_long[:6] + body_picks[:5]))
+        if not (_valid_group(picks_long[:5]) and _valid_group(body_picks[:n_body])):
+            ev.confidence = 0.0
         ev.kind = "appliance-msg"
     else:
-        _apply_picks(ev, _read_spans(ev, times, labels, short, cfg.slot_search_ms))
+        picks = _read_spans(ev, times, labels, short, cfg.slot_search_ms)
+        _apply_picks(ev, picks)
+        if not _valid_group(picks[:5]):
+            ev.confidence = 0.0
         ev.kind = {"1": "station", "C": "appliance", "D": "appliance"}.get(ev.code[:1], "unknown")
 
 
@@ -247,6 +252,15 @@ def _tones_to_code(picks):
         code += t
         prev = t
     return code, (min(c for _, c in picks) if picks else 0.0)
+
+
+def _valid_group(picks):
+    """A tone group can't start with the repeat tone or send the same tone
+    twice in a row (repeats are sent as E). A read that does is noise."""
+    labs = [lab for lab, _ in picks]
+    if labs and labs[0] == TONE_NAMES.index(REPEAT):
+        return False
+    return all(a != b for a, b in zip(labs, labs[1:]) if a >= 0)
 
 
 def _apply_picks(ev, picks):
