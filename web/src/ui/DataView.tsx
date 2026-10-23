@@ -13,10 +13,11 @@ import { ImportPanel } from "./Player";
 import { UnitPicker } from "./Picker";
 
 type Sub = "source" | "alerts" | "inbox" | "stations" | "appliances" | "codes" | "messages" | "backup";
-const SUBS: [Sub, string][] = [
-  ["source", "Radio source"], ["alerts", "Alerts"], ["inbox", "Unknown codes"], ["stations", "Stations"],
-  ["appliances", "Appliances"], ["codes", "Turnout codes"], ["messages", "Messages"], ["backup", "Import / export"],
-];
+type Section = "source" | "alerts" | "inbox" | "codebook" | "backup";
+const CODEBOOK_SUBS: [Sub, string][] = [["stations", "Stations"], ["appliances", "Trucks"], ["codes", "Turnout codes"], ["messages", "Message meanings"]];
+const sectionOf = (sub?: string): Section | null =>
+  sub === "source" || sub === "alerts" || sub === "inbox" || sub === "backup" ? sub
+    : sub === "stations" || sub === "appliances" || sub === "codes" || sub === "messages" || sub === "codebook" ? "codebook" : null;
 const STATES: ApplianceState[] = ["turned-out", "responding", "at-incident", "out-of-area", "available-radio", "on-station", "status-unknown"];
 const clone = (cb: Codebook): Codebook => JSON.parse(JSON.stringify(cb));
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -48,32 +49,127 @@ function Msg({ msg }: { msg: { ok: boolean; text: string } | null }) {
 }
 
 export function DataView({ sub: initial }: { sub?: string }) {
-  const [sub, setSub] = useState<Sub>((SUBS.find((s) => s[0] === initial)?.[0]) ?? "source");
-  const { board } = useBoard();
-  const origin = useStore((s) => s.codebookOrigin);
+  const [section, setSection] = useState<Section | null>(sectionOf(initial));
+  const [codebookSub, setCodebookSub] = useState<Sub>(CODEBOOK_SUBS.some((c) => c[0] === initial) ? (initial as Sub) : "stations");
+  const open = (s: Section | null) => { setSection(s); window.scrollTo({ top: 0 }); };
+  if (!section) return <SettingsHome open={open} />;
+  const titles: Record<Section, [string, string]> = {
+    source: ["Radio source", "Where the board's calls come from"],
+    alerts: ["Alerts & alarms", "What should get your attention, and how loudly"],
+    inbox: ["Unknown codes", "Calls the board couldn't place yet"],
+    codebook: ["Stations & trucks", "The codebook: who each tone sequence belongs to"],
+    backup: ["Backup & sharing", "Copy your codebook to another device, or start fresh"],
+  };
+  return (
+    <>
+      <button className="backlink" onClick={() => open(null)}>‹ Settings</button>
+      <div className="section-head">
+        <span className={`sicon s-${section}`} aria-hidden="true">{SECTION_ICON[section]}</span>
+        <div><h1 className="page-title">{titles[section][0]}</h1><p className="note">{titles[section][1]}</p></div>
+      </div>
+      {section === "source" && <SourcePanel />}
+      {section === "alerts" && <AlertsPanel />}
+      {section === "inbox" && <Inbox />}
+      {section === "backup" && <Backup />}
+      {section === "codebook" && (
+        <>
+          <div className="subtabs" role="tablist">
+            {CODEBOOK_SUBS.map(([key, label]) => (
+              <button key={key} role="tab" className="chip" aria-pressed={codebookSub === key} onClick={() => setCodebookSub(key)}>{label}</button>
+            ))}
+          </div>
+          {codebookSub === "stations" && <StationsEditor />}
+          {codebookSub === "appliances" && <AppliancesEditor />}
+          {codebookSub === "codes" && <CodesEditor />}
+          {codebookSub === "messages" && <MessagesEditor />}
+        </>
+      )}
+    </>
+  );
+}
+
+const SECTION_ICON: Record<Section | "setup", ReactNode> = {
+  source: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="2.5" /><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" /></svg>,
+  alerts: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>,
+  inbox: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01" /></svg>,
+  codebook: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M3 21V10l9-6 9 6v11z" /><path d="M8 21v-6h8v6" /></svg>,
+  backup: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>,
+  setup: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" /></svg>,
+};
+
+/** The settings landing page: one card per area, each saying how it's set now. */
+function SettingsHome({ open }: { open: (s: Section) => void }) {
+  const st = useStore((s) => s.settings);
   const cb = useStore((s) => s.codebook);
+  const origin = useStore((s) => s.codebookOrigin);
+  const input = useStore((s) => s.input);
+  const { board } = useBoard();
+  const [setup, setSetup] = useState(false);
+  const name = (id: string) => cb.stations.find((s) => s.id === id)?.name ?? id;
+  const source = st.mode === "demo" ? `Demo traffic at ${st.sim.speed}× speed`
+    : st.mode === "input" ? (input?.status === "listening" ? "Listening to an audio input" : "Audio input (not listening)")
+    : st.mode === "file" ? "Playing a recording" : `Backend ${st.backendUrl || "on this server"}`;
+  const alarmCount = st.alarm.stations.length + st.alarm.appliances.length;
+  const alerts = [
+    alarmCount ? `Turnout alarm for ${[st.alarm.stations.length && `${st.alarm.stations.length} station${st.alarm.stations.length === 1 ? "" : "s"}`, st.alarm.appliances.length && `${st.alarm.appliances.length} truck${st.alarm.appliances.length === 1 ? "" : "s"}`].filter(Boolean).join(" and ")}` : "Turnout alarm off",
+    st.priorityAlarm.scope === "off" ? "priority alarm off" : st.priorityAlarm.scope === "any" ? "priority alarm for any truck" : "priority alarm for chosen trucks",
+  ].join(" · ");
+  const mine = [...new Set([...st.watched, ...st.alarm.stations])];
+  const cards: [Section, string, string, ReactNode?][] = [
+    ["source", "Radio source", source],
+    ["alerts", "Alerts & alarms", alerts],
+    ["inbox", "Unknown codes", board.inbox.length ? `${board.inbox.length} waiting for you to identify` : "Nothing waiting", board.inbox.length ? <span className="badge static">{board.inbox.length}</span> : undefined],
+    ["codebook", "Stations & trucks", `${cb.stations.length} stations · ${cb.appliances.length} trucks · ${cb.turnoutCodes.length} codes${origin === "local" ? " · edited here" : origin === "backend" ? " · shared" : ""}`],
+    ["backup", "Backup & sharing", "Export, import or reset the codebook"],
+  ];
   return (
     <>
       <h1 className="page-title">Settings</h1>
-      <p className="note">
-        Codebook version {cb.version} · {origin === "backend" ? "shared from the backend" : origin === "local" ? "edited in this browser" : "bundled with the app"} · updated {new Date(cb.updatedAt).toLocaleString("en-NZ")}
-      </p>
-      <div className="subtabs" role="tablist">
-        {SUBS.map(([key, label]) => (
-          <button key={key} role="tab" className="chip" aria-pressed={sub === key} onClick={() => setSub(key)}>
-            {label}{key === "inbox" && <b>{board.inbox.length}</b>}
+      <section className="setup-card">
+        <span className="sicon s-setup" aria-hidden="true">{SECTION_ICON.setup}</span>
+        <div className="grow">
+          <h2>{mine.length ? `Your station${mine.length === 1 ? "" : "s"}: ${mine.map(name).join(", ")}` : "Which station is yours?"}</h2>
+          <p>{mine.length ? "Change your station and trucks in one go." : "Pick your station and trucks once. They'll go on My board, get a star, and set off the turnout alarm."}</p>
+        </div>
+        <button className="btn primary" onClick={() => setSetup(true)}>{mine.length ? "Change" : "Set up my station"}</button>
+      </section>
+      <div className="settings-grid">
+        {cards.map(([key, title, summary, extra]) => (
+          <button key={key} className="settings-card" onClick={() => open(key)}>
+            <span className={`sicon s-${key}`} aria-hidden="true">{SECTION_ICON[key]}</span>
+            <span className="sc-text"><b>{title}</b><span>{summary}</span></span>
+            {extra}
+            <span className="chev" aria-hidden="true">›</span>
           </button>
         ))}
       </div>
-      {sub === "inbox" && <Inbox />}
-      {sub === "stations" && <StationsEditor />}
-      {sub === "appliances" && <AppliancesEditor />}
-      {sub === "codes" && <CodesEditor />}
-      {sub === "messages" && <MessagesEditor />}
-      {sub === "source" && <SourcePanel />}
-      {sub === "alerts" && <AlertsPanel />}
-      {sub === "backup" && <Backup />}
+      {setup && <QuickSetup close={() => setSetup(false)} />}
     </>
+  );
+}
+
+/** Pick your station(s)/trucks once; fills My board, the turnout alarm and watched stations. */
+function QuickSetup({ close }: { close: () => void }) {
+  const st = useStore((s) => s.settings);
+  const cb = useStore((s) => s.codebook);
+  const [apps, setApps] = useState<string[]>(st.myBoard.appliances);
+  const [alarm, setAlarm] = useState(true);
+  const stations = [...new Set(apps.map((id) => cb.appliances.find((a) => a.id === id)?.stationId).filter(Boolean) as string[])];
+  const apply = () => {
+    store.myBoard({ appliances: apps });
+    store.settings({ watched: [...new Set([...st.watched, ...stations])] });
+    if (alarm) store.alarm({ appliances: apps });
+    close();
+  };
+  return (
+    <Sheet title="Set up my station" sub="Tick your trucks, or Add all for a whole station" onClose={close}>
+      <UnitPicker stationMode="add-all" appliances={apps} onChange={(n) => setApps(n.appliances)} />
+      <label className="check"><input type="checkbox" checked={alarm} onChange={(e) => setAlarm(e.target.checked)} /> Sound the full-screen turnout alarm when these are turned out</label>
+      <div className="row">
+        <button className="btn primary" disabled={!apps.length} onClick={apply}>Save {apps.length ? `${apps.length} truck${apps.length === 1 ? "" : "s"}` : ""}</button>
+        <span className="small muted">{stations.length ? `${stations.map((id) => cb.stations.find((s) => s.id === id)?.name).join(", ")}` : ""}</span>
+      </div>
+    </Sheet>
   );
 }
 
@@ -482,16 +578,16 @@ function SourcePanel() {
     <>
       <div className="sources">
         <button className="card-opt" aria-pressed={settings.mode === "demo"} onClick={demo}>
-          <b>Demo</b><span className="small muted">Simulated Auckland traffic, made as audio and decoded in this browser. Nothing leaves the page.</span>
+<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17h3l2-9 3 13 3-17 2 13h3" /></svg></span><b>Demo</b><span className="small muted">Pretend Auckland traffic, made as real tones and decoded in this browser. Great for trying things out.</span>
         </button>
         <button className="card-opt" aria-pressed={settings.mode === "file"} onClick={() => { store.settings({ mode: "file" }); startSource(); }}>
-          <b>Recording</b><span className="small muted">Open an audio or video file, decode it here, and play it back with the board following along.</span>
+<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg></span><b>Recording</b><span className="small muted">Open an audio file or phone video. It plays back and the board follows along.</span>
         </button>
         <button className="card-opt" aria-pressed={settings.mode === "input"} onClick={() => { store.settings({ mode: "input" }); startSource(); }}>
-          <b>Audio input</b><span className="small muted">Listen to a scanner through a microphone, line-in or USB sound card, decoded live in this browser, and hear it as it plays.</span>
+<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8" /></svg></span><b>Audio input</b><span className="small muted">Plug in a scanner (line-in, USB sound card or mic). Decoded live, and you hear it too.</span>
         </button>
         <button className="card-opt" aria-pressed={settings.mode === "backend"} onClick={connect}>
-          <b>Live backend</b><span className="small muted">Real calls from your decoder (an SDR on a Raspberry Pi), and a codebook shared by everyone using it.</span>
+<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="7" rx="2" /><rect x="3" y="13" width="18" height="7" rx="2" /><path d="M7 7.5h.01M7 16.5h.01" /></svg></span><b>Live backend</b><span className="small muted">A Raspberry Pi with an SDR does the listening; everyone shares its calls and codebook.</span>
         </button>
       </div>
       {settings.mode === "demo" && <DemoRadio />}
@@ -540,15 +636,15 @@ function AlertsPanel() {
   return (
     <>
       <section className="panel">
-        <h2>Alerts <small>while this page is open</small></h2>
-        <label className="check"><input type="checkbox" checked={alerts.prioritySound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ prioritySound: e.target.checked }); }} /> Sound an alarm for priority calls</label>
+        <h2>Little nudges <small>while this page is open</small></h2>
+        <label className="check"><input type="checkbox" checked={alerts.prioritySound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ prioritySound: e.target.checked }); }} /> Chime and banner for every priority call</label>
         <label className="check"><input type="checkbox" checked={alerts.watchedSound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ watchedSound: e.target.checked }); }} /> Chime when a watched station is turned out</label>
         <label className="check"><input type="checkbox" checked={alerts.notify} onChange={async (e) => {
           if (e.target.checked && !(await askNotifications())) { setNote("Notifications are blocked for this site. Allow them in the browser's site settings."); return; }
           store.alertSettings({ notify: e.target.checked });
         }} /> Also show a notification when the page is in the background</label>
         <div className="row">
-          <button className="btn" onClick={() => { unlockAlertAudio(); chime("priority"); }}>Test priority alarm</button>
+          <button className="btn" onClick={() => { unlockAlertAudio(); chime("priority"); }}>Test priority chime</button>
           <button className="btn" onClick={() => { unlockAlertAudio(); chime("turnout"); }}>Test turnout chime</button>
         </div>
         {note && <p className="error">{note}</p>}
@@ -556,7 +652,8 @@ function AlertsPanel() {
         <p className="note">Phones vibrate for priority calls where the browser allows it. Alerts only fire for calls heard while the page is open.</p>
       </section>
       <section className="panel">
-        <h2>Turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
+        <div className="alarm-preview turnout" aria-hidden="true"><b>TURNOUT</b><span>Grey Lynn 261</span><i>Acknowledge</i></div>
+        <h2>The big red screen: turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
         <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm and sounds until you acknowledge it. A whole-station call alarms for every chosen truck at that station.</p>
         {(alarm.stations.length > 0 || alarm.appliances.length > 0) && (
           <div className="chips" style={{ flexWrap: "wrap" }}>
@@ -581,7 +678,8 @@ function AlertsPanel() {
         )}
       </section>
       <section className="panel">
-        <h2>Priority call alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
+        <div className="alarm-preview priority" aria-hidden="true"><b>PRIORITY CALL</b><span>Grey Lynn 261</span><i>Acknowledge</i></div>
+        <h2>The big yellow screen: priority alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
         <p className="note">A full-screen priority alarm with its own siren, showing which truck made the call, until you acknowledge it. Every priority call still gets the banner and chime above.</p>
         <div className="seg" role="group" aria-label="Priority alarm for">
           <button aria-pressed={pa.scope === "off"} onClick={() => store.priorityAlarm({ scope: "off" })}>Off</button>
@@ -607,7 +705,7 @@ function AlertsPanel() {
         )}
       </section>
       <section className="panel">
-        <h2>Un-mute on alerts <small>{muted ? "radio audio is muted" : "radio audio is on"}</small></h2>
+        <h2>Sound <small>{muted ? "radio audio is muted" : "radio audio is on"}</small></h2>
         <p className="note">Mute the radio audio (monitored input, demo tones, recordings) with the speaker button at the top. When any alert or alarm goes off, it un-mutes so you can hear what's happening, then mutes again.</p>
         <div className="seg" role="group" aria-label="Un-mute for">
           {([[0, "Don't un-mute"], [45, "45 seconds"], [60, "1 minute"]] as [number, string][]).map(([v, l]) => (

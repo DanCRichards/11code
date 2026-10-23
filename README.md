@@ -31,7 +31,7 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 ## The board
 
 - **Live:** turnouts grouped into jobs (stations called close together, with each appliance's current status); a status board of every appliance that's out; "On air" for routine calls, priority calls and status messages; a priority-call banner with an alarm; and a map you can show or hide.
-- **My board:** your own grid of trucks, grouped by station and coloured by status. A truck flashes when it's turned out; a whole-station call makes the station's group pulse. Large or compact cells, full screen, and keep-screen-on for a wall display.
+- **My board:** your own grid of trucks, grouped by station and coloured by status. A truck flashes when it's turned out; a whole-station call makes the station's group pulse. Large or compact cells, keep-screen-on, and **TV mode**: a full-window board sized so every truck fits the screen, with a "station called" banner. Open `…/#tv` to start a TV straight in it.
 - **Turnout alarm** (Settings → Alerts): pick stations and trucks; when one is turned out the screen becomes a full-screen alarm that sounds until you acknowledge it.
 - **Priority alarm** (Settings → Alerts): full-screen for priority calls from any truck, or only chosen trucks/stations, showing which truck called.
 - **Mute with auto un-mute:** the speaker button mutes radio audio (monitored input, demo tones, recordings). Any alert or alarm un-mutes it for 45 seconds or a minute, then it mutes again.

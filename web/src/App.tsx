@@ -21,6 +21,7 @@ const TABS: [Tab, string, keyof typeof Icon][] = [
 function tabFromHash(): Tab {
   const h = typeof location !== "undefined" ? location.hash.slice(1) : "";
   if (h === "settings" || h === "data") return "data";
+  if (h === "tv") return "board";
   return (TABS.find((t) => t[0] === h)?.[0]) ?? "live";
 }
 

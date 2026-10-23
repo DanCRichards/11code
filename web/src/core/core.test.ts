@@ -119,3 +119,12 @@ describe("priority alarm and un-mute", () => {
     vi.useRealTimers();
   });
 });
+
+describe("TV grid", () => {
+  it("picks the column count that makes tiles biggest", async () => {
+    const { fitGrid } = await import("../ui/MyBoard");
+    expect(fitGrid(6, 1920, 900, 12)).toEqual({ cols: 3, rows: 2 });
+    expect(fitGrid(12, 1920, 900, 12)).toEqual({ cols: 4, rows: 3 });
+    expect(fitGrid(1, 1920, 900)).toEqual({ cols: 1, rows: 1 });
+  });
+});
