@@ -41,3 +41,21 @@ Raw output: `results-2026-10-23.txt`. Re-run with `python -m bench.run`.
 4. Instantaneous frequency, a 10 ms window, and an 8 dB ratio gate all lose.
 5. Band-pass filtering and 3-frame smoothing each help; 16 kHz sampling
    doesn't.
+
+## Update: long appliance messages ("13tone")
+
+Two real appliance messages share a layout: the 5-tone header, a ~55 ms
+separator tone (F in both) starting at ~105 ms, then 5 body tones on a 20 ms
+grid from ~165 ms. Both bodies read `1400C`, so the body looks like a status
+or message code. Decoded as `C72D1-F1400C`. The body length (5) is from these two
+messages only.
+
+Decoded correctly out of 180 synthetic SDR calls (3 seeds x 60), by CNR:
+
+| CNR (dB) | Stations | Short appliance | Long appliance | Wrong |
+|---|---|---|---|---|
+| 20 | 75/75 | 58/58 | 47/47 | 0 |
+| 7 | 75/75 | 58/58 | 47/47 | 0 |
+| 5 | 75/75 | 57/58 | 46/47 | 0 |
+| 4 | 75/75 | 51/58 | 32/47 | 2 |
+| 3 | 59/75 | 34/58 | 14/47 | 6 |

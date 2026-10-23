@@ -22,18 +22,40 @@ def encode(code):
 
 
 def random_code(rng):
-    if rng.random() < 0.5:  # station-style
+    r = rng.random()
+    if r < 0.4:  # station
         return "18" + "".join(rng.choice(list("0123456789"), 4))
-    return "C" + "".join(rng.choice(SYMBOLS, 4)) + rng.choice(list("24BC"))
+    if r < 0.7:  # short appliance call
+        return "C" + "".join(rng.choice(SYMBOLS, 4)) + rng.choice(list("24BC"))
+    # long appliance message: header-separator+body
+    return ("C" + "".join(rng.choice(SYMBOLS, 4)) + "-F"
+            + "".join(rng.choice(SYMBOLS, 5)))
+
+
+def _encode_group(tones):
+    out, prev = [], None
+    for t in tones:
+        out.append("E" if t == prev else t)
+        prev = t
+    return out
 
 
 def burst(code, fs, rng, tone_ms=20.0, final_offset_ms=137.0, final_ms=45.0,
           jitter=0.0, freq_offset=0.0, twist_db=0.0):
     scale = 1 + rng.uniform(-jitter, jitter)
-    main, final = encode(code)
-    parts = [(t, k * tone_ms * scale, tone_ms * scale) for k, t in enumerate(main)]
-    parts.append((final, final_offset_ms * scale, final_ms))
-    total = int((final_offset_ms * scale + final_ms) / 1000 * fs) + 1
+    if "-" in code:  # long appliance message
+        head, rest = code.split("-")
+        sep, body = rest[0], rest[1:]
+        parts = [(t, k * tone_ms * scale, tone_ms * scale)
+                 for k, t in enumerate(_encode_group(head))]
+        parts.append((sep, 105 * scale, 55 * scale))
+        parts += [(t, (165 + k * tone_ms) * scale, tone_ms * scale)
+                  for k, t in enumerate(_encode_group(body))]
+    else:
+        main, final = encode(code)
+        parts = [(t, k * tone_ms * scale, tone_ms * scale) for k, t in enumerate(main)]
+        parts.append((final, final_offset_ms * scale, final_ms))
+    total = int((parts[-1][1] + parts[-1][2]) / 1000 * fs) + 1
     y = np.zeros(total)
     phase = 0.0
     for t, start_ms, dur_ms in parts:
