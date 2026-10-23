@@ -31,15 +31,16 @@ function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
 }) {
   const { ix, board, now } = useBoard();
   const sb = board.stations.get(stationId);
-  const called = sb?.history.find((e) => e.type === "station-turnout");
-  const stationCalled = !!called && now - called.call.time < flashMs;
+  // Recently turned out: red until the station acknowledges (182 + station + 0), then a tick.
+  const turnedOutAt = sb?.lastTurnout && now - sb.lastTurnout < flashMs ? sb.lastTurnout : undefined;
+  const ackAt = turnedOutAt && sb?.lastAck && sb.lastAck >= turnedOutAt ? sb.lastAck : undefined;
   const name = ix.station.get(stationId)?.name;
   return (
-    <section className={`mb-station${stationCalled ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4), ...style }}>
+    <section className={`mb-station${turnedOutAt && !ackAt ? " called" : ""}`} style={{ ["--n" as string]: Math.min(ids.length, 4), ...style }}>
       <header>
         {onStation ? <button className="linkbtn mb-sname" onClick={onStation}>{name}</button> : <span className="mb-sname">{name}</span>}
-        {stationCalled
-          ? <span className="mb-called">Station called · {ago(called!.call.time, now)}</span>
+        {ackAt ? <span className="mb-ack">✓ Acknowledged · {ago(ackAt, now)}</span>
+          : turnedOutAt ? <span className="mb-called">Turned out · {ago(turnedOutAt, now)}</span>
           : sb?.lastTurnout ? <span className="mb-last">last turnout {ago(sb.lastTurnout, now)}</span> : null}
       </header>
       <div className="mb-cells">
@@ -50,7 +51,7 @@ function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
           const turnedOut = !!own && now - own.call.time < flashMs;
           const priority = !!ab.priorityAt && now - ab.priorityAt < flashMs * 4;
           return (
-            <button key={id} className={`mb-cell${turnedOut ? " flash" : ""}${stationCalled ? " pulse" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
+            <button key={id} className={`mb-cell${turnedOut ? " flash" : ""}${ab.state === "not-heard" ? " quiet" : ""}`}
               style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => onTruck(id)}
               aria-label={`${a.callsign} ${boardText(ab)}`}>
               <b>{a.callsign}</b>
@@ -273,8 +274,8 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
 
   const clusters = groupByStation(cfg.appliances, ix);
   const ids = clusters.flatMap((c) => c.ids);
-  const called = clusters.map((c) => ({ sid: c.stationId, ev: board.stations.get(c.stationId)?.history.find((e) => e.type === "station-turnout") }))
-    .filter((c) => c.ev && now - c.ev.call.time < flashMs);
+  const called = clusters.map((c) => ({ sid: c.stationId, at: board.stations.get(c.stationId)?.lastTurnout }))
+    .filter((c) => c.at && now - c.at < flashMs);
   // On a phone everything-on-one-screen makes tiles tiny, so scroll with usable cells instead.
   const narrow = box.w < 700;
   const fit = narrow ? scrollFit(clusters.map((c) => c.ids.length), box.w) : fitClusters(clusters.map((c) => c.ids.length), box.w, box.h, 14);
@@ -291,7 +292,7 @@ export function TvBoard({ onExit }: { onExit: () => void }) {
     <div className={`tv${narrow ? " narrow" : ""}`} role="region" aria-label="TV board">
       <header className="tv-top">
         {called.length > 0
-          ? <span className="tv-called">Station called: {called.map((c) => ix.station.get(c.sid)?.name).join(" · ")}</span>
+          ? <span className="tv-called">Turned out: {called.map((c) => ix.station.get(c.sid)?.name).join(" · ")}</span>
           : <span className="tv-quiet">{cfg.boards.length > 1 && boardName ? `${boardName} · ` : ""}{ids.filter((id) => board.appliances.get(id)!.state !== "on-station" && board.appliances.get(id)!.state !== "not-heard").length} of {ids.length} trucks out</span>}
         <span className="tv-clock">{new Intl.DateTimeFormat("en-NZ", { timeZone: "Pacific/Auckland", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(now)}</span>
       </header>

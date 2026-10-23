@@ -90,7 +90,6 @@ export function LiveView({ nav }: { nav: Nav }) {
 function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; board: ReturnType<typeof useBoard>["board"]; now: number; watched: string[]; nav: Nav }) {
   const fresh = now - job.last < 10_000;
   const isWatched = job.stationIds.some((s) => watched.includes(s));
-  const wholeStation = job.turnouts.filter((t) => t.type === "station-turnout").map((t) => t.stationId);
   return (
     <article className={`job${job.active ? " active" : ""}${fresh ? " fresh" : ""}${isWatched ? " watched" : ""}`}>
       <div className="job-head">
@@ -98,6 +97,7 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
           {job.stationIds.map((sid, i) => (
             <span key={sid}>{i > 0 && <span className="muted"> + </span>}
               <button className="linkbtn job-st" onClick={() => nav.station(sid)}>{isWatched && watched.includes(sid) ? "★ " : ""}{ix.station.get(sid)?.name ?? sid}</button>
+              {job.acks.includes(sid) && <span className="job-ack" title="Station acknowledged the turnout">✓</span>}
             </span>
           ))}
         </div>
@@ -112,7 +112,6 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
             </button>
           );
         })}
-        {wholeStation.length > 0 && job.applianceIds.length === 0 && <span className="small muted">Whole-station call; waiting for an appliance to report</span>}
       </div>
       <div className="job-foot small muted">
         <span>{job.turnouts.map((t) => <code key={t.call.id}>{t.call.code}</code>)}</span>
@@ -153,7 +152,7 @@ function StatusBoard({ ix, board, now, nav }: { ix: Index; board: ReturnType<typ
 }
 
 const AIR_FILTERS: [string, string, (e: Interpreted) => boolean][] = [
-  ["all", "All", (e) => e.type !== "turnout" && e.type !== "station-turnout" && e.type !== "unreadable"],
+  ["all", "All", (e) => e.type !== "turnout" && e.type !== "unreadable"],
   ["routine", "Routine", (e) => e.type === "appliance-call"],
   ["priority", "Priority", (e) => e.type === "priority"],
   ["status", "Status", (e) => e.type === "status" || e.type === "unknown-status"],

@@ -3,8 +3,8 @@
     python tools/make_codebook.py  ->  data/codebook.json
 
 Turnout codes in Store/stations.lst follow "182" + appliance callsign
-(182821 = Birkenhead 821), and codes ending in 0 look like whole-station
-calls (182860 "KUMEU STATION"). Codes from the list are marked
+(182821 = Birkenhead 821). Codes ending in 0 (182860 "KUMEU STATION") are the
+station acknowledging a turnout, not a call-out; they have no applianceId. Codes from the list are marked
 source="list"; codes filled in from that pattern are source="pattern" and
 unverified. Station positions are approximate.
 """
@@ -104,7 +104,7 @@ def main():
         elif tail in app_by_call:
             codes[code] = {"code": code, "stationId": app_by_call[tail]["stationId"],
                            "applianceId": tail, "source": "list"}
-    # Fill the gaps from the pattern: an appliance code and a whole-station code.
+    # Fill the gaps from the pattern: an appliance code and the station's acknowledgement code.
     for a in appliances:
         c = "182" + a["callsign"]
         codes.setdefault(c, {"code": c, "stationId": a["stationId"], "applianceId": a["id"],

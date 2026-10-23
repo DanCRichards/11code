@@ -12,6 +12,7 @@ export interface ApplianceBoard {
 
 export interface StationBoard {
   lastTurnout?: number;
+  lastAck?: number; // the station acknowledged a turnout (182 + station + 0)
   lastTurnoutEvent?: Interpreted;
   turnoutsToday: number;
   history: Interpreted[]; // newest first
@@ -40,7 +41,7 @@ export interface Board {
 const dayFmt = new Intl.DateTimeFormat("en-NZ", { timeZone: "Pacific/Auckland", year: "numeric", month: "2-digit", day: "2-digit" });
 export const nzDay = (t: number) => dayFmt.format(t);
 
-/** "182" + appliance callsign, or "182" + station number + "0" for a whole-station call. */
+/** "182" + appliance callsign, or "182" + station number + "0" for the station acknowledging. */
 export function suggestForStationCode(code: string, ix: Index): InboxItem["suggestion"] {
   if (!/^182\d{3}$/.test(code)) return undefined;
   const tail = code.slice(3);
@@ -80,7 +81,8 @@ export function deriveBoard(events: Interpreted[], ix: Index, now: number, dismi
       ab.lastEvent = ev;
       if (ev.state) { ab.state = ev.state; ab.status = ev.status; }
     }
-    if (ev.type === "turnout" || ev.type === "station-turnout") {
+    if (ev.type === "station-ack" && sb) sb.lastAck = t;
+    if (ev.type === "turnout") {
       turnouts.unshift(ev);
       if (sb) {
         sb.lastTurnout = t;

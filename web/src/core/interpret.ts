@@ -42,8 +42,9 @@ export function interpret(call: Call, ix: Index): Interpreted {
       return { call, type: "turnout", stationId: t.stationId, applianceId: a.id, state: "turned-out",
                label: "Turnout", title: applianceName(ix, a) };
     }
-    return { call, type: "station-turnout", stationId: t.stationId, label: "Station turnout",
-             title: s ? `${s.name} station` : `Station ${t.stationId}` };
+    // 182 + station number + 0: the station acknowledging its turnout, not a call-out.
+    return { call, type: "station-ack", stationId: t.stationId, label: "Acknowledged",
+             title: s ? `${s.name} acknowledged` : `Station ${t.stationId} acknowledged` };
   }
   const header = call.code.slice(0, 5);
   const a = ix.bySelcall.get(header);

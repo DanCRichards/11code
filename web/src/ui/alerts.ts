@@ -156,7 +156,7 @@ export function useAlerts(events: Interpreted[]) {
         if (alerts.prioritySound) chime("priority");
         try { navigator.vibrate?.([300, 120, 300, 120, 300]); } catch { /* no vibration */ }
         notify("Priority call", `${ev.title} · ${ev.call.code}`);
-      } else if ((ev.type === "turnout" || ev.type === "station-turnout") && ev.stationId && watched.includes(ev.stationId)) {
+      } else if (ev.type === "turnout" && ev.stationId && watched.includes(ev.stationId)) {
         store.alertUnmute();
         if (alerts.watchedSound) chime("turnout");
         try { navigator.vibrate?.(200); } catch { /* no vibration */ }

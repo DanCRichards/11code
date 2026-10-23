@@ -20,7 +20,7 @@ export interface Appliance {
 export interface TurnoutCode {
   code: string;
   stationId: string;
-  applianceId: string | null; // null = whole-station call
+  applianceId: string | null; // null = the station acknowledging a turnout (182 + station number + 0)
   source: "list" | "pattern" | "user";
 }
 
@@ -69,7 +69,7 @@ export interface Call {
 }
 
 export type EventType =
-  | "turnout" | "station-turnout" | "status" | "priority" | "appliance-call"
+  | "turnout" | "station-ack" | "status" | "priority" | "appliance-call"
   | "unknown-code" | "unknown-status" | "unreadable";
 
 export interface Interpreted {

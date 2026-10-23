@@ -21,18 +21,10 @@ const autoClearSecs = (kind: AlarmKind) => {
 };
 
 /** Does this turnout match the turnout alarm's stations/trucks? */
-export function alarmMatch(ev: Interpreted, cfg: Pick<AlarmSettings, "stations" | "appliances">, ix: Index): string | null {
-  if (ev.type !== "turnout" && ev.type !== "station-turnout") return null;
-  const sid = ev.stationId;
-  if (!sid) return null;
-  const sname = ix.station.get(sid)?.name ?? sid;
-  if (ev.type === "turnout" && ev.applianceId) {
-    if (cfg.appliances.includes(ev.applianceId) || cfg.stations.includes(sid)) return ev.title;
-    return null;
-  }
-  // Whole-station call: alarm if the station, or any chosen truck there, is watched.
-  const truckThere = cfg.appliances.some((id) => ix.appliance.get(id)?.stationId === sid);
-  return cfg.stations.includes(sid) || truckThere ? `${sname} station` : null;
+export function alarmMatch(ev: Interpreted, cfg: Pick<AlarmSettings, "stations" | "appliances">, _ix?: Index): string | null {
+  // Only a truck's own turnout; a station code ending in 0 is the station acknowledging.
+  if (ev.type !== "turnout" || !ev.stationId || !ev.applianceId) return null;
+  return cfg.appliances.includes(ev.applianceId) || cfg.stations.includes(ev.stationId) ? ev.title : null;
 }
 
 /** Does this priority call match the priority alarm (any truck, or chosen ones)? */
@@ -124,7 +116,7 @@ export function AlarmOverlay({ hits, onAck, ix }: { hits: AlarmHit[]; onAck: () 
   }, [active, onAck]);
   if (!active) return null;
   const others = hits.filter((h) => h !== latest);
-  const kicker = latest.kind === "priority" ? "Priority call" : latest.ev.type === "station-turnout" ? "Station call" : "Turnout";
+  const kicker = latest.kind === "priority" ? "Priority call" : "Turnout";
   return (
     <div className={`alarm ${latest.kind}`} role="alertdialog" aria-modal="true" aria-labelledby="alarm-title">
       <div className="alarm-inner">

@@ -59,7 +59,7 @@ export interface MyBoardSettings {
 /** Full-screen turnout alarm for chosen stations and trucks. */
 export interface AlarmSettings {
   stations: string[]; // any turnout at these stations
-  appliances: string[]; // these trucks, or a whole-station call at their station
+  appliances: string[]; // these trucks
   sound: boolean;
   repeat: boolean; // keep sounding until acknowledged
   autoClear: number; // seconds until the alarm clears by itself; 0 = wait for Acknowledge

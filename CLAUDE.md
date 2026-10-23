@@ -60,7 +60,9 @@ them with the real suffixes once they're confirmed from recordings.
 ## SelCall format (short)
 
 - CCIR tones, E = 2110 Hz is the repeat tone.
-- Station turnout: `182` + callsign, or `182` + station number + `0` for a whole-station call.
+- Station turnout: `182` + callsign turns out that truck.
+- `182` + station number + `0` is the station **acknowledging** the turnout, a few seconds after it;
+  it is not a call-out. The app shows it as "✓ Acknowledged" and never alarms on it.
 - Appliance message: `HEADER-SEP+BODY` (13 tones); short appliance call is header + final tone
   (`B` = priority, `C` = routine, `4` = turnout ack; unverified).
 

@@ -13,7 +13,8 @@ export const fmt = (s: number) => {
 };
 
 function markerColour(ev: Interpreted): string {
-  if (ev.type === "turnout" || ev.type === "station-turnout") return "var(--s-out)";
+  if (ev.type === "turnout") return "var(--s-out)";
+  if (ev.type === "station-ack") return "var(--s-station)";
   if (ev.type === "priority") return "var(--hivis)";
   if (ev.type === "status" && ev.state) return stateVar(ev.state);
   return "var(--s-unknown)";

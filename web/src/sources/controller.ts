@@ -40,7 +40,6 @@ export function startSource() {
 
 export const demoActions = {
   turnout: (stationId?: string) => demo?.turnoutNow(stationId) ?? false,
-  stationCall: (stationId: string) => demo?.turnoutNow(stationId, true) ?? false,
   priority: () => demo?.priorityCall() ?? false,
   unlockAudio: () => demo?.unlockAudio(),
 };

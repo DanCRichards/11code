@@ -232,7 +232,7 @@ function InboxCard({ item, now, ixName, onDismiss }: { item: InboxItem; now: num
               </select></label>
             <label className="field"><span>Appliance</span>
               <select value={applianceId} onChange={(e) => setApplianceId(e.target.value)} disabled={!stationId}>
-                <option value="">Whole station</option>
+                <option value="">None: the station acknowledging</option>
                 {cb.appliances.filter((a) => a.stationId === stationId).map((a) => <option key={a.id} value={a.id}>{a.callsign}</option>)}
               </select></label>
           </div>
@@ -420,7 +420,7 @@ function CodesEditor() {
   const cb = useStore((s) => s.codebook);
   const name = (t: TurnoutCode) => {
     const s = cb.stations.find((x) => x.id === t.stationId)?.name ?? t.stationId;
-    return t.applianceId ? `${s} ${cb.appliances.find((a) => a.id === t.applianceId)?.callsign ?? t.applianceId}` : `${s} (whole station)`;
+    return t.applianceId ? `${s} ${cb.appliances.find((a) => a.id === t.applianceId)?.callsign ?? t.applianceId}` : `${s} (acknowledgement)`;
   };
   return (
     <ListEditor<TurnoutCode> title="Turnout codes" items={cb.turnoutCodes} keyOf={(t) => t.code}
@@ -458,7 +458,7 @@ function CodeForm({ code, close }: { code: TurnoutCode | null; close: () => void
           </select></label>
         <label className="field"><span>Appliance</span>
           <select value={f.applianceId ?? ""} onChange={(e) => setF({ ...f, applianceId: e.target.value || null })} disabled={!f.stationId}>
-            <option value="">Whole station</option>
+            <option value="">None: the station acknowledging</option>
             {cb.appliances.filter((a) => a.stationId === f.stationId).map((a) => <option key={a.id} value={a.id}>{a.callsign}</option>)}
           </select></label>
         {code?.source === "pattern" && <p className="note">Saving marks this code as confirmed.</p>}
@@ -673,7 +673,7 @@ function AlertsPanel() {
       <section className="panel">
         <div className="alarm-preview turnout" aria-hidden="true"><b>TURNOUT</b><strong>261</strong><span>Grey Lynn</span></div>
         <h2>The big red screen: turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
-        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm showing the truck (or the station and all its trucks). A whole-station call alarms for every chosen truck at that station.</p>
+        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm showing the truck. Choosing a station covers every truck there. The station's acknowledgement (its code ending in 0) never sets it off.</p>
         {(alarm.stations.length > 0 || alarm.appliances.length > 0) && (
           <div className="chips" style={{ flexWrap: "wrap" }}>
             {alarm.stations.map((id) => <button key={id} className="chip" onClick={() => store.alarm({ stations: alarm.stations.filter((x) => x !== id) })}>{cb.stations.find((s) => s.id === id)?.name} (station) ×</button>)}

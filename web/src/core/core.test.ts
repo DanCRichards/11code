@@ -14,7 +14,7 @@ describe("interpretation", () => {
   it("reads turnouts, statuses, priority calls and unknowns", () => {
     const evs = interpretAll([
       call("182821", "station", 1),          // Birkenhead 821, from the list
-      call("182820", "station", 2),          // Birkenhead station (pattern)
+      call("182820", "station", 2),          // Birkenhead acknowledging (pattern)
       call("D8611-F1A0C2", "appliance-msg", 3),
       call("D8611B", "appliance", 4),        // final B = priority
       call("D8611-F1400C", "appliance-msg", 5),
@@ -22,7 +22,7 @@ describe("interpretation", () => {
       call("182821", "station", 7, 0.2),
     ], ix);
     expect(evs.map((e) => e.type)).toEqual([
-      "turnout", "station-turnout", "status", "priority", "unknown-status", "unknown-code", "unreadable",
+      "turnout", "station-ack", "status", "priority", "unknown-status", "unknown-code", "unreadable",
     ]);
     expect(evs[0].title).toBe("Birkenhead 821");
     expect(evs[2].state).toBe("responding");
@@ -57,7 +57,8 @@ describe("jobs", () => {
     const evs = interpretAll([
       call("182261", "station", t0),                    // Grey Lynn 261
       call("182205", "station", t0 + 40_000),           // Auckland City 205, 2.1 km away
-      call("182850", "station", t0 + 60_000),           // Albany station, far away: new job
+      call("182260", "station", t0 + 20_000),           // Grey Lynn acknowledges
+      call("182851", "station", t0 + 60_000),           // Albany 851, far away: new job
       call("D95D1-F1A0C2", "appliance-msg", t0 + 90_000), // 205 responding
       call("182821", "station", t0 + 400_000),          // Birkenhead, much later: new job
     ], ix);
@@ -66,11 +67,13 @@ describe("jobs", () => {
     expect(jobs.map((j) => j.stationIds)).toEqual([["birkenhead"], ["albany"], ["grey-lynn", "auckland-city"]]);
     expect(jobs[2].applianceIds).toEqual(["261", "205"]);
     expect(jobs[2].active).toBe(true);
+    expect(jobs[2].acks).toEqual(["grey-lynn"]);
+    expect(jobs[2].turnouts).toHaveLength(2); // the acknowledgement isn't a turnout
   });
 });
 
 describe("turnout alarm", () => {
-  it("matches chosen trucks, chosen stations, and station calls where a chosen truck lives", async () => {
+  it("matches chosen trucks and chosen stations, never an acknowledgement", async () => {
     const { alarmMatch } = await import("../ui/Alarm");
     const cfg = { stations: ["albany"], appliances: ["261"], sound: true, repeat: true };
     const [own, other, stationOfTruck, stationChosen, elsewhere] = interpretAll([
@@ -79,7 +82,7 @@ describe("turnout alarm", () => {
     ], ix);
     expect(alarmMatch(own, cfg, ix)).toBe("Grey Lynn 261");
     expect(alarmMatch(other, cfg, ix)).toBeNull();
-    expect(alarmMatch(stationOfTruck, cfg, ix)).toBe("Grey Lynn station");
+    expect(alarmMatch(stationOfTruck, cfg, ix)).toBeNull(); // 182260 is Grey Lynn acknowledging
     expect(alarmMatch(stationChosen, cfg, ix)).toBe("Albany 851");
     expect(alarmMatch(elsewhere, cfg, ix)).toBeNull();
   });
