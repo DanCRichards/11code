@@ -38,6 +38,8 @@ export class InputSource {
   private decimator?: Decimator;
   private lastLevelAt = 0;
   private peak = 0;
+  private offStore?: () => void;
+  private wasAudible = true;
 
   start() {
     store.set({
@@ -45,9 +47,15 @@ export class InputSource {
       input: { status: "idle", devices: [], level: 0, peak: 0, heard: 0 },
     });
     void this.listDevices();
+    this.wasAudible = store.audible();
+    this.offStore = store.subscribe(() => {
+      const a = store.audible();
+      if (a !== this.wasAudible) { this.wasAudible = a; this.applyMonitor(); }
+    });
   }
 
   stop() {
+    this.offStore?.();
     this.release();
     store.set({ input: undefined });
   }
@@ -145,7 +153,7 @@ export class InputSource {
   applyMonitor() {
     if (!this.monitor || !this.ctx) return;
     const { monitor, volume } = store.get().settings.input;
-    this.monitor.gain.setTargetAtTime(monitor ? volume : 0, this.ctx.currentTime, 0.02);
+    this.monitor.gain.setTargetAtTime(monitor && store.audible() ? volume : 0, this.ctx.currentTime, 0.02);
   }
 
   private onSamples(x: Float32Array) {

@@ -525,7 +525,14 @@ function SourcePanel() {
 function AlertsPanel() {
   const alerts = useStore((s) => s.settings.alerts);
   const alarm = useStore((s) => s.settings.alarm);
+  const pa = useStore((s) => s.settings.priorityAlarm);
+  const muted = useStore((s) => s.settings.muted);
   const [picking, setPicking] = useState(false);
+  const [pickingPrio, setPickingPrio] = useState(false);
+  const chosenLabel = (stations: string[], apps: string[]) => [
+    ...stations.map((id) => `${cb.stations.find((s) => s.id === id)?.name ?? id} (station)`),
+    ...apps.map((id) => { const a = cb.appliances.find((x) => x.id === id); return `${cb.stations.find((s) => s.id === a?.stationId)?.name ?? ""} ${a?.callsign ?? id}`; }),
+  ];
   const watched = useStore((s) => s.settings.watched);
   const cb = useStore((s) => s.codebook);
   const [note, setNote] = useState("");
@@ -562,7 +569,7 @@ function AlertsPanel() {
         )}
         <div className="row">
           <button className="btn primary" onClick={() => setPicking(true)}>{alarm.stations.length + alarm.appliances.length ? "Change stations and trucks" : "Choose stations and trucks"}</button>
-          <button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new Event("tb-test-alarm")); }}>Test the alarm</button>
+          <button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })); }}>Test the alarm</button>
         </div>
         <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Sound the alarm</label>
         <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until I acknowledge it (up to 3 minutes)</label>
@@ -572,6 +579,42 @@ function AlertsPanel() {
             <div className="row"><button className="btn primary" onClick={() => setPicking(false)}>Done</button></div>
           </Sheet>
         )}
+      </section>
+      <section className="panel">
+        <h2>Priority call alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
+        <p className="note">A full-screen priority alarm with its own siren, showing which truck made the call, until you acknowledge it. Every priority call still gets the banner and chime above.</p>
+        <div className="seg" role="group" aria-label="Priority alarm for">
+          <button aria-pressed={pa.scope === "off"} onClick={() => store.priorityAlarm({ scope: "off" })}>Off</button>
+          <button aria-pressed={pa.scope === "any"} onClick={() => store.priorityAlarm({ scope: "any" })}>Any truck</button>
+          <button aria-pressed={pa.scope === "chosen"} onClick={() => { store.priorityAlarm({ scope: "chosen" }); if (!pa.stations.length && !pa.appliances.length) setPickingPrio(true); }}>Chosen trucks</button>
+        </div>
+        {pa.scope === "chosen" && (
+          <>
+            {(pa.stations.length > 0 || pa.appliances.length > 0) && (
+              <div className="chips" style={{ flexWrap: "wrap" }}>
+                {chosenLabel(pa.stations, pa.appliances).map((l) => <span key={l} className="chip">{l}</span>)}
+              </div>
+            )}
+            <div className="row"><button className="btn" onClick={() => setPickingPrio(true)}>Choose stations and trucks</button></div>
+          </>
+        )}
+        <div className="row"><button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })); }}>Test the priority alarm</button></div>
+        {pickingPrio && (
+          <Sheet title="Priority alarm" sub="Whole stations count every truck there" onClose={() => setPickingPrio(false)}>
+            <UnitPicker stationMode="toggle" appliances={pa.appliances} stations={pa.stations} onChange={(n) => store.priorityAlarm(n)} />
+            <div className="row"><button className="btn primary" onClick={() => setPickingPrio(false)}>Done</button></div>
+          </Sheet>
+        )}
+      </section>
+      <section className="panel">
+        <h2>Un-mute on alerts <small>{muted ? "radio audio is muted" : "radio audio is on"}</small></h2>
+        <p className="note">Mute the radio audio (monitored input, demo tones, recordings) with the speaker button at the top. When any alert or alarm goes off, it un-mutes so you can hear what's happening, then mutes again.</p>
+        <div className="seg" role="group" aria-label="Un-mute for">
+          {([[0, "Don't un-mute"], [45, "45 seconds"], [60, "1 minute"]] as [number, string][]).map(([v, l]) => (
+            <button key={v} aria-pressed={alerts.unmuteSeconds === v} onClick={() => store.alertSettings({ unmuteSeconds: v })}>{l}</button>
+          ))}
+        </div>
+        <p className="note">This controls the app's own sound. A web page can't turn off a phone's silent switch or raise its system volume, so keep the phone's volume up.</p>
       </section>
       <section className="panel">
         <h2>Watched stations <small>{watched.length} starred</small></h2>

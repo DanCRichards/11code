@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import bundled from "../../../data/codebook.json";
 import { deriveBoard, suggestForStationCode } from "./derive";
 import { buildIndex, interpretAll } from "./interpret";
@@ -82,5 +82,40 @@ describe("turnout alarm", () => {
     expect(alarmMatch(stationOfTruck, cfg, ix)).toBe("Grey Lynn station");
     expect(alarmMatch(stationChosen, cfg, ix)).toBe("Albany 851");
     expect(alarmMatch(elsewhere, cfg, ix)).toBeNull();
+  });
+});
+
+describe("priority alarm and un-mute", () => {
+  it("matches any truck, or only chosen trucks and stations", async () => {
+    const { priorityMatch } = await import("../ui/Alarm");
+    const [glPrio, acPrio, glTurnout] = interpretAll([
+      call("D72F1B", "appliance", 1), // Grey Lynn 261 priority
+      call("D95D1B", "appliance", 2), // Auckland City 205 priority
+      call("182261", "station", 3),
+    ], ix);
+    expect(priorityMatch(glPrio, { scope: "off", stations: [], appliances: [] })).toBeNull();
+    expect(priorityMatch(acPrio, { scope: "any", stations: [], appliances: [] })).toBe("Auckland City 205");
+    const chosen = { scope: "chosen" as const, stations: [], appliances: ["261"] };
+    expect(priorityMatch(glPrio, chosen)).toBe("Grey Lynn 261");
+    expect(priorityMatch(acPrio, chosen)).toBeNull();
+    expect(priorityMatch(acPrio, { scope: "chosen", stations: ["auckland-city"], appliances: [] })).toBe("Auckland City 205");
+    expect(priorityMatch(glTurnout, { scope: "any", stations: [], appliances: [] })).toBeNull();
+  });
+
+  it("un-mutes radio audio for the set time when an alert fires, then mutes again", async () => {
+    vi.useFakeTimers();
+    const { store } = await import("../store");
+    store.settings({ muted: true });
+    store.alertSettings({ unmuteSeconds: 45 });
+    expect(store.audible()).toBe(false);
+    store.alertUnmute();
+    expect(store.audible()).toBe(true);
+    vi.advanceTimersByTime(44_000);
+    expect(store.audible()).toBe(true);
+    vi.advanceTimersByTime(2_000);
+    expect(store.audible()).toBe(false);
+    expect(store.get().unmutedUntil).toBeUndefined();
+    store.settings({ muted: false });
+    vi.useRealTimers();
   });
 });

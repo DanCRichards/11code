@@ -65,10 +65,12 @@ export function useAlerts(events: Interpreted[]) {
       seen.current.add(ev.call.id);
       if (Date.now() - ev.call.time > 15_000) continue; // backfilled, not live
       if (ev.type === "priority") {
+        store.alertUnmute();
         if (alerts.prioritySound) chime("priority");
         try { navigator.vibrate?.([300, 120, 300, 120, 300]); } catch { /* no vibration */ }
         notify("Priority call", `${ev.title} · ${ev.call.code}`);
       } else if ((ev.type === "turnout" || ev.type === "station-turnout") && ev.stationId && watched.includes(ev.stationId)) {
+        store.alertUnmute();
         if (alerts.watchedSound) chime("turnout");
         try { navigator.vibrate?.(200); } catch { /* no vibration */ }
         notify("Turnout", ev.title);
@@ -87,25 +89,27 @@ export function useAlerts(events: Interpreted[]) {
 let sirenTimer: number | undefined;
 let sirenUntil = 0;
 
-/** Loud alternating turnout alarm; repeats (for up to 3 minutes) until stopSiren(). */
-export function siren(repeat: boolean) {
+/** Loud alarm; repeats (for up to 3 minutes) until stopSiren(). Turnout is a
+ *  slow hi-lo; priority is a faster, higher warble so they sound different. */
+export function siren(repeat: boolean, kind: "turnout" | "priority" = "turnout") {
   stopSiren();
   if (!ctx) return;
+  const [hi, lo, step, n] = kind === "priority" ? [1480, 1040, 0.16, 12] : [1180, 780, 0.3, 6];
   const burst = () => {
     if (!ctx) return;
     const t0 = ctx.currentTime + 0.02;
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < n; i++) {
       const o = ctx.createOscillator(), g = ctx.createGain();
-      const t = t0 + i * 0.3;
+      const t = t0 + i * step;
       o.type = "square";
-      o.frequency.setValueAtTime(i % 2 ? 780 : 1180, t);
+      o.frequency.setValueAtTime(i % 2 ? lo : hi, t);
       g.gain.setValueAtTime(0, t);
       g.gain.linearRampToValueAtTime(0.16, t + 0.01);
-      g.gain.setValueAtTime(0.16, t + 0.26);
-      g.gain.linearRampToValueAtTime(0, t + 0.29);
+      g.gain.setValueAtTime(0.16, t + step - 0.04);
+      g.gain.linearRampToValueAtTime(0, t + step - 0.01);
       o.connect(g).connect(ctx.destination);
       o.start(t);
-      o.stop(t + 0.3);
+      o.stop(t + step);
     }
   };
   burst();

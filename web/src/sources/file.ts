@@ -21,12 +21,24 @@ export class FileSource {
   private shown = 0; // how many found calls are on the board
   private timer?: number;
   private loadId = 0;
+  private out?: GainNode;
+  private offStore?: () => void;
 
   start() {
     store.set({ connection: { status: "file" }, calls: [], lastCall: undefined });
+    let was = store.audible();
+    this.offStore = store.subscribe(() => {
+      const a = store.audible();
+      if (a !== was) { was = a; this.applyMute(); }
+    });
+  }
+
+  private applyMute() {
+    if (this.out && this.ctx) this.out.gain.setTargetAtTime(store.audible() ? 1 : 0, this.ctx.currentTime, 0.02);
   }
 
   stop() {
+    this.offStore?.();
     this.halt();
     clearInterval(this.timer);
     this.loadId++;
@@ -121,7 +133,9 @@ export class FileSource {
     if (this.offset >= p.duration - 0.05) { this.offset = 0; this.sync(true); }
     const node = ctx.createBufferSource();
     node.buffer = this.buffer;
-    node.connect(ctx.destination);
+    if (!this.out) { this.out = ctx.createGain(); this.out.connect(ctx.destination); }
+    this.applyMute();
+    node.connect(this.out);
     node.onended = () => {
       if (this.node !== node) return;
       this.offset = this.position();

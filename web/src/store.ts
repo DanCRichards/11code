@@ -31,6 +31,14 @@ export interface AlertSettings {
   prioritySound: boolean; // chime for priority calls
   watchedSound: boolean; // chime when a watched station is turned out
   notify: boolean; // system notification for those, when the page is in the background
+  unmuteSeconds: number; // when an alert fires, un-mute radio audio for this long (0 = don't)
+}
+
+/** Full-screen alarm for priority calls: from any truck, or only chosen ones. */
+export interface PriorityAlarmSettings {
+  scope: "off" | "any" | "chosen";
+  stations: string[];
+  appliances: string[];
 }
 
 export interface MyBoardSettings {
@@ -56,6 +64,8 @@ export interface Settings {
   watched: string[]; // station ids starred by the user
   myBoard: MyBoardSettings;
   alarm: AlarmSettings;
+  priorityAlarm: PriorityAlarmSettings;
+  muted: boolean; // radio audio (monitor, demo tones, recordings) muted by the user
   showMap: boolean | null; // null = default for the screen size
   dismissed: string[]; // inbox keys the user chose to ignore
 }
@@ -92,6 +102,7 @@ export interface State {
   connection: Connection;
   player?: Player;
   input?: InputState;
+  unmutedUntil?: number; // an alert has un-muted radio audio until this time
 }
 
 export const BUNDLED = bundled as unknown as Codebook;
@@ -121,10 +132,12 @@ const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   sim: { auto: true, speed: 20, snr: 8, sound: false },
   input: { deviceId: "", monitor: true, volume: 0.8 },
-  alerts: { prioritySound: true, watchedSound: true, notify: false },
+  alerts: { prioritySound: true, watchedSound: true, notify: false, unmuteSeconds: 45 },
   watched: [],
   myBoard: { appliances: [], size: "large" },
   alarm: { stations: [], appliances: [], sound: true, repeat: true },
+  priorityAlarm: { scope: "off", stations: [], appliances: [] },
+  muted: false,
   showMap: null,
   dismissed: [],
 };
@@ -138,6 +151,7 @@ function initialSettings(): Settings {
     alerts: { ...DEFAULT_SETTINGS.alerts, ...saved.alerts },
     myBoard: { ...DEFAULT_SETTINGS.myBoard, ...saved.myBoard },
     alarm: { ...DEFAULT_SETTINGS.alarm, ...saved.alarm },
+    priorityAlarm: { ...DEFAULT_SETTINGS.priorityAlarm, ...saved.priorityAlarm },
   };
   s.sim.sound = false; // audio needs a tap each visit
   // ?backend=https://host:8080 (or #backend=... is not allowed in some hosts) preselects live mode.
@@ -159,6 +173,7 @@ let state: State = {
 };
 
 const listeners = new Set<() => void>();
+let unmuteTimer: ReturnType<typeof setTimeout> | undefined;
 
 export const store = {
   get: () => state,
@@ -183,6 +198,22 @@ export const store = {
   },
   myBoard(patch: Partial<MyBoardSettings>) {
     store.settings({ myBoard: { ...state.settings.myBoard, ...patch } });
+  },
+  priorityAlarm(patch: Partial<PriorityAlarmSettings>) {
+    store.settings({ priorityAlarm: { ...state.settings.priorityAlarm, ...patch } });
+  },
+  /** Radio audio plays unless muted, or while an alert has temporarily un-muted it. */
+  audible(): boolean {
+    return !state.settings.muted || (state.unmutedUntil ?? 0) > Date.now();
+  },
+  /** An alert fired: un-mute radio audio for the configured time. */
+  alertUnmute() {
+    const secs = state.settings.alerts.unmuteSeconds;
+    if (!secs || !state.settings.muted) return;
+    const until = Date.now() + secs * 1000;
+    store.set({ unmutedUntil: until });
+    clearTimeout(unmuteTimer);
+    unmuteTimer = setTimeout(() => store.set({ unmutedUntil: undefined }), secs * 1000 + 50);
   },
   alarm(patch: Partial<AlarmSettings>) {
     store.settings({ alarm: { ...state.settings.alarm, ...patch } });

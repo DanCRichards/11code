@@ -167,7 +167,7 @@ export class DemoSource {
 
   private transmit(code: string, wall: number): Call {
     const { snr, sound } = store.get().settings.sim;
-    const ctx = sound && !this.seeding ? this.ctx() : undefined;
+    const ctx = sound && !this.seeding && store.audible() ? this.ctx() : undefined;
     const fs = ctx ? ctx.sampleRate : 8000;
     const x = synth(code, fs, snr);
     const ev = decode(x, fs)[0];
