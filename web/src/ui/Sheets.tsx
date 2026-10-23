@@ -40,7 +40,12 @@ export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClo
           })}
         </ul>
       )}
-      {mode === "demo" && <button className="btn primary" onClick={() => { demoActions.unlockAudio(); demoActions.turnout(id); }}>Simulate a turnout here</button>}
+      {mode === "demo" && (
+        <div className="row">
+          <button className="btn primary" onClick={() => { demoActions.unlockAudio(); demoActions.turnout(id); }}>Simulate a turnout here</button>
+          <button className="btn" onClick={() => { demoActions.unlockAudio(); demoActions.stationCall(id); }}>Simulate a whole-station call</button>
+        </div>
+      )}
       <h3 className="section-title">Recent calls</h3>
       {b.history.length === 0 ? <p className="empty">Nothing heard for this station yet.</p> : (
         <ul className="list">

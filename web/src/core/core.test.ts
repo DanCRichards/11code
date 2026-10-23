@@ -68,3 +68,19 @@ describe("jobs", () => {
     expect(jobs[2].active).toBe(true);
   });
 });
+
+describe("turnout alarm", () => {
+  it("matches chosen trucks, chosen stations, and station calls where a chosen truck lives", async () => {
+    const { alarmMatch } = await import("../ui/Alarm");
+    const cfg = { stations: ["albany"], appliances: ["261"], sound: true, repeat: true };
+    const [own, other, stationOfTruck, stationChosen, elsewhere] = interpretAll([
+      call("182261", "station", 1), call("182205", "station", 2), call("182260", "station", 3),
+      call("182851", "station", 4), call("182820", "station", 5),
+    ], ix);
+    expect(alarmMatch(own, cfg, ix)).toBe("Grey Lynn 261");
+    expect(alarmMatch(other, cfg, ix)).toBeNull();
+    expect(alarmMatch(stationOfTruck, cfg, ix)).toBe("Grey Lynn station");
+    expect(alarmMatch(stationChosen, cfg, ix)).toBe("Albany 851");
+    expect(alarmMatch(elsewhere, cfg, ix)).toBeNull();
+  });
+});

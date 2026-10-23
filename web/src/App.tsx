@@ -9,9 +9,11 @@ import type { Nav, Tab } from "./ui/nav";
 import { ApplianceSheet, StationSheet } from "./ui/Sheets";
 import { PlayerBar } from "./ui/Player";
 import { unlockAlertAudio, useAlerts } from "./ui/alerts";
+import { AlarmOverlay, useTurnoutAlarm } from "./ui/Alarm";
+import { MyBoardView } from "./ui/MyBoard";
 
 const TABS: [Tab, string, keyof typeof Icon][] = [
-  ["live", "Live", "live"], ["appliances", "Appliances", "units"], ["stations", "Stations", "stations"],
+  ["live", "Live", "live"], ["board", "My board", "board"], ["appliances", "Appliances", "units"], ["stations", "Stations", "stations"],
   ["log", "Log", "log"],
 ];
 
@@ -30,8 +32,14 @@ export function App() {
   const speed = useStore((s) => s.settings.sim.speed);
   const listening = useStore((s) => s.input?.status === "listening");
   const hasPlayer = useStore((s) => s.settings.mode === "file" && !!s.player && (s.player.duration > 0 || s.player.decoding !== null));
-  const { board, events } = useBoard();
+  const { board, events, ix } = useBoard();
   useAlerts(events);
+  const alarm = useTurnoutAlarm(events, ix);
+  useEffect(() => {
+    const test = () => alarm.test();
+    window.addEventListener("tb-test-alarm", test);
+    return () => window.removeEventListener("tb-test-alarm", test);
+  }, [alarm]);
   useEffect(() => {
     const unlock = () => unlockAlertAudio();
     window.addEventListener("pointerdown", unlock, { once: true });
@@ -92,12 +100,14 @@ export function App() {
       </nav>
       <main className="main" key={`${tab}:${filter ?? ""}`}>
         {tab === "live" && <LiveView nav={nav} />}
+        {tab === "board" && <MyBoardView nav={nav} />}
         {tab === "appliances" && <AppliancesView nav={nav} filter={filter} />}
         {tab === "stations" && <StationsView nav={nav} />}
         {tab === "log" && <LogView nav={nav} filter={filter} />}
         {tab === "data" && <DataView sub={filter} />}
       </main>
       <PlayerBar />
+      <AlarmOverlay hits={alarm.hits} onAck={alarm.ack} />
       {sheet?.kind === "station" && <StationSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
       {sheet?.kind === "appliance" && <ApplianceSheet id={sheet.id} nav={nav} onClose={() => setSheet(null)} />}
     </div>

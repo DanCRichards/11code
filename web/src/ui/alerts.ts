@@ -83,3 +83,41 @@ export function useAlerts(events: Interpreted[]) {
     return () => { off(); };
   }, []);
 }
+
+let sirenTimer: number | undefined;
+let sirenUntil = 0;
+
+/** Loud alternating turnout alarm; repeats (for up to 3 minutes) until stopSiren(). */
+export function siren(repeat: boolean) {
+  stopSiren();
+  if (!ctx) return;
+  const burst = () => {
+    if (!ctx) return;
+    const t0 = ctx.currentTime + 0.02;
+    for (let i = 0; i < 6; i++) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      const t = t0 + i * 0.3;
+      o.type = "square";
+      o.frequency.setValueAtTime(i % 2 ? 780 : 1180, t);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.16, t + 0.01);
+      g.gain.setValueAtTime(0.16, t + 0.26);
+      g.gain.linearRampToValueAtTime(0, t + 0.29);
+      o.connect(g).connect(ctx.destination);
+      o.start(t);
+      o.stop(t + 0.3);
+    }
+  };
+  burst();
+  if (repeat) {
+    sirenUntil = Date.now() + 3 * 60_000;
+    sirenTimer = window.setInterval(() => {
+      if (Date.now() > sirenUntil) stopSiren(); else burst();
+    }, 3200);
+  }
+}
+
+export function stopSiren() {
+  clearInterval(sirenTimer);
+  sirenTimer = undefined;
+}

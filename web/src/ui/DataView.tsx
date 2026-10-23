@@ -10,6 +10,7 @@ import { askNotifications, chime, unlockAlertAudio } from "./alerts";
 import { DemoRadio } from "./DemoRadio";
 import { InputPanel } from "./Input";
 import { ImportPanel } from "./Player";
+import { UnitPicker } from "./Picker";
 
 type Sub = "source" | "alerts" | "inbox" | "stations" | "appliances" | "codes" | "messages" | "backup";
 const SUBS: [Sub, string][] = [
@@ -523,6 +524,8 @@ function SourcePanel() {
 
 function AlertsPanel() {
   const alerts = useStore((s) => s.settings.alerts);
+  const alarm = useStore((s) => s.settings.alarm);
+  const [picking, setPicking] = useState(false);
   const watched = useStore((s) => s.settings.watched);
   const cb = useStore((s) => s.codebook);
   const [note, setNote] = useState("");
@@ -544,6 +547,31 @@ function AlertsPanel() {
         {note && <p className="error">{note}</p>}
         {perm === "unsupported" && <p className="note">This browser doesn't support notifications here. On iPhone, add the site to your home screen first.</p>}
         <p className="note">Phones vibrate for priority calls where the browser allows it. Alerts only fire for calls heard while the page is open.</p>
+      </section>
+      <section className="panel">
+        <h2>Turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
+        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm and sounds until you acknowledge it. A whole-station call alarms for every chosen truck at that station.</p>
+        {(alarm.stations.length > 0 || alarm.appliances.length > 0) && (
+          <div className="chips" style={{ flexWrap: "wrap" }}>
+            {alarm.stations.map((id) => <button key={id} className="chip" onClick={() => store.alarm({ stations: alarm.stations.filter((x) => x !== id) })}>{cb.stations.find((s) => s.id === id)?.name} (station) ×</button>)}
+            {alarm.appliances.map((id) => {
+              const a = cb.appliances.find((x) => x.id === id);
+              return <button key={id} className="chip" onClick={() => store.alarm({ appliances: alarm.appliances.filter((x) => x !== id) })}>{cb.stations.find((s) => s.id === a?.stationId)?.name} {a?.callsign} ×</button>;
+            })}
+          </div>
+        )}
+        <div className="row">
+          <button className="btn primary" onClick={() => setPicking(true)}>{alarm.stations.length + alarm.appliances.length ? "Change stations and trucks" : "Choose stations and trucks"}</button>
+          <button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new Event("tb-test-alarm")); }}>Test the alarm</button>
+        </div>
+        <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Sound the alarm</label>
+        <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until I acknowledge it (up to 3 minutes)</label>
+        {picking && (
+          <Sheet title="Turnout alarm" sub="Choose whole stations, or just some trucks" onClose={() => setPicking(false)}>
+            <UnitPicker stationMode="toggle" appliances={alarm.appliances} stations={alarm.stations} onChange={(n) => store.alarm(n)} />
+            <div className="row"><button className="btn primary" onClick={() => setPicking(false)}>Done</button></div>
+          </Sheet>
+        )}
       </section>
       <section className="panel">
         <h2>Watched stations <small>{watched.length} starred</small></h2>

@@ -96,15 +96,22 @@ export class DemoSource {
   }
 
   /** Turn out one or two appliances from a station and play the job through. */
-  startIncident(stationId?: string): boolean {
+  /** Turn out a station; `whole` sends the whole-station call and turns out every free truck. */
+  startIncident(stationId?: string, whole = false): boolean {
     const cb = this.cb;
     const free = (sid: string) => cb.appliances.filter((a) => a.stationId === sid && !this.busy.has(a.id) && a.selcallId);
     const candidates = cb.stations.filter((s) => free(s.id).length && cb.turnoutCodes.some((c) => c.stationId === s.id));
     if (!candidates.length || this.busy.size > 14) return false;
     const station = stationId ? cb.stations.find((s) => s.id === stationId) : pick(candidates.flatMap((s) => (BUSY_STATIONS.has(s.id) ? [s, s, s] : [s])));
     if (!station || !free(station.id).length) return false;
-    const apps = free(station.id).slice(0, Math.random() < 0.3 ? 2 : 1);
     const stationCode = cb.turnoutCodes.find((c) => c.stationId === station.id && !c.applianceId);
+    if (whole && stationCode) {
+      const apps = free(station.id);
+      this.at(0, (w) => this.send(stationCode.code, w));
+      apps.forEach((a, i) => { this.busy.add(a.id); this.playJob(a, U(30, 90) + i * 15); });
+      return true;
+    }
+    const apps = free(station.id).slice(0, Math.random() < 0.3 ? 2 : 1);
     for (const [i, a] of apps.entries()) {
       this.busy.add(a.id);
       const own = cb.turnoutCodes.filter((c) => c.applianceId === a.id);
@@ -148,8 +155,8 @@ export class DemoSource {
     return true;
   }
 
-  turnoutNow(stationId?: string) {
-    const ok = this.startIncident(stationId);
+  turnoutNow(stationId?: string, whole = false) {
+    const ok = this.startIncident(stationId, whole);
     this.tick();
     return ok;
   }

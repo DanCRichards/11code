@@ -33,6 +33,19 @@ export interface AlertSettings {
   notify: boolean; // system notification for those, when the page is in the background
 }
 
+export interface MyBoardSettings {
+  appliances: string[]; // trucks on the custom board, in the order added
+  size: "large" | "compact";
+}
+
+/** Full-screen turnout alarm for chosen stations and trucks. */
+export interface AlarmSettings {
+  stations: string[]; // any turnout at these stations
+  appliances: string[]; // these trucks, or a whole-station call at their station
+  sound: boolean;
+  repeat: boolean; // keep sounding until acknowledged
+}
+
 export interface Settings {
   mode: Mode;
   backendUrl: string; // "" = same origin as the page
@@ -41,6 +54,8 @@ export interface Settings {
   input: InputSettings;
   alerts: AlertSettings;
   watched: string[]; // station ids starred by the user
+  myBoard: MyBoardSettings;
+  alarm: AlarmSettings;
   showMap: boolean | null; // null = default for the screen size
   dismissed: string[]; // inbox keys the user chose to ignore
 }
@@ -108,6 +123,8 @@ const DEFAULT_SETTINGS: Settings = {
   input: { deviceId: "", monitor: true, volume: 0.8 },
   alerts: { prioritySound: true, watchedSound: true, notify: false },
   watched: [],
+  myBoard: { appliances: [], size: "large" },
+  alarm: { stations: [], appliances: [], sound: true, repeat: true },
   showMap: null,
   dismissed: [],
 };
@@ -119,6 +136,8 @@ function initialSettings(): Settings {
     sim: { ...DEFAULT_SETTINGS.sim, ...saved.sim },
     input: { ...DEFAULT_SETTINGS.input, ...saved.input },
     alerts: { ...DEFAULT_SETTINGS.alerts, ...saved.alerts },
+    myBoard: { ...DEFAULT_SETTINGS.myBoard, ...saved.myBoard },
+    alarm: { ...DEFAULT_SETTINGS.alarm, ...saved.alarm },
   };
   s.sim.sound = false; // audio needs a tap each visit
   // ?backend=https://host:8080 (or #backend=... is not allowed in some hosts) preselects live mode.
@@ -161,6 +180,12 @@ export const store = {
   },
   alertSettings(patch: Partial<AlertSettings>) {
     store.settings({ alerts: { ...state.settings.alerts, ...patch } });
+  },
+  myBoard(patch: Partial<MyBoardSettings>) {
+    store.settings({ myBoard: { ...state.settings.myBoard, ...patch } });
+  },
+  alarm(patch: Partial<AlarmSettings>) {
+    store.settings({ alarm: { ...state.settings.alarm, ...patch } });
   },
   toggleWatch(stationId: string) {
     const w = state.settings.watched;

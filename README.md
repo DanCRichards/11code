@@ -31,6 +31,8 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 ## The board
 
 - **Live:** turnouts grouped into jobs (stations called close together, with each appliance's current status); a status board of every appliance that's out; "On air" for routine calls, priority calls and status messages; a priority-call banner with an alarm; and a map you can show or hide.
+- **My board:** your own grid of trucks, grouped by station and coloured by status. A truck flashes when it's turned out; a whole-station call makes the station's group pulse. Large or compact cells, full screen, and keep-screen-on for a wall display.
+- **Turnout alarm** (Settings → Alerts): pick stations and trucks; when one is turned out the screen becomes a full-screen alarm that sounds until you acknowledge it.
 - **Settings** (the gear): radio source (demo, recording, audio input, backend), alerts (priority alarm, chime for watched stations, background notifications), and the codebook.
 - **Appliances:** every fire engine with its current status, searchable and filterable.
 - **Stations:** last turnout, turnouts today and appliance statuses for every station.
