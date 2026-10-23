@@ -208,18 +208,140 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 "IBM P
 @keyframes pulse { 50% { filter: brightness(1.25); } }
 @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
 
+
+/* ---------- E. Dispatch console ---------- */
+.dE { --k-bg: #0a0d10; --k-panel: #10151a; --k-row: #131a20; --k-alt: #161e25; --k-line: #22303a; --k-fg: #d7e0e6; --k-dim: #7d8c97; --k-head: #9fb3c0;
+  --s-out: #ff4a3d; --s-resp: #ffa51f; --s-inc: #b77bff; --s-ooa: #22c3b3; --s-avail: #4d9bff; --s-stn: #45c56f; --s-nh: #3a4650;
+  background: var(--k-bg); color: var(--k-fg); font: 13px/1.35 "IBM Plex Sans", sans-serif; padding: 12px; overflow-x: auto; }
+.dE * { font-variant-numeric: tabular-nums; }
+.k-frame { min-width: 1040px; display: grid; grid-template-columns: 250px minmax(0, 1fr) 290px; grid-template-rows: auto 1fr auto; gap: 8px; }
+.k-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 18px; background: var(--k-panel); border: 1px solid var(--k-line); padding: 7px 12px; font: 500 12px/1 "IBM Plex Mono", monospace; color: var(--k-head); }
+.k-top .brand { color: var(--k-fg); font-weight: 600; letter-spacing: .08em; }
+.k-top .live { display: inline-flex; align-items: center; gap: 6px; color: var(--s-stn); }
+.k-top .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--s-stn); box-shadow: 0 0 6px var(--s-stn); }
+.k-top .counts { display: flex; gap: 12px; margin-left: auto; }
+.k-top .counts b { color: var(--k-fg); }
+.k-top .clock { color: var(--k-fg); font-size: 16px; font-weight: 600; }
+.k-panel { background: var(--k-panel); border: 1px solid var(--k-line); min-height: 0; display: grid; grid-template-rows: auto 1fr; }
+.k-panel > h4 { margin: 0; padding: 6px 10px; border-bottom: 1px solid var(--k-line); font: 600 11px/1 "IBM Plex Mono", monospace; letter-spacing: .12em; color: var(--k-head); display: flex; justify-content: space-between; }
+.k-jobs { display: grid; align-content: start; }
+.k-job { padding: 8px 10px; border-bottom: 1px solid var(--k-line); border-left: 3px solid var(--s-out); display: grid; gap: 3px; }
+.k-job.inc { border-left-color: var(--s-inc); }
+.k-job.done { border-left-color: var(--k-dim); opacity: .65; }
+.k-job .l1 { display: flex; justify-content: space-between; font: 600 12px/1.2 "IBM Plex Mono", monospace; }
+.k-job .l1 span { color: var(--k-dim); font-weight: 400; }
+.k-job .stn { font-weight: 600; font-size: 14px; }
+.k-job .units { display: flex; gap: 4px; flex-wrap: wrap; }
+.k-job .units i { font: normal 600 11px/1 "IBM Plex Mono", monospace; padding: 3px 5px; border-radius: 2px; color: var(--st); box-shadow: inset 0 0 0 1px var(--st); }
+.k-job .sit { font: 500 11px/1.2 "IBM Plex Mono", monospace; color: var(--s-out); }
+table.k-units { width: 100%; border-collapse: collapse; font: 12.5px/1.2 "IBM Plex Mono", monospace; }
+.k-units th { text-align: left; font-weight: 600; font-size: 10.5px; letter-spacing: .1em; color: var(--k-dim); padding: 6px 8px; border-bottom: 1px solid var(--k-line); position: sticky; top: 0; background: var(--k-panel); }
+.k-units td { padding: 5px 8px; border-bottom: 1px solid #1a232b; white-space: nowrap; }
+.k-units tr.grp td { background: #0d1216; color: var(--k-head); font: 600 11px/1 "IBM Plex Sans", sans-serif; letter-spacing: .1em; text-transform: uppercase; padding: 7px 8px 5px; }
+.k-units tr.grp td span { color: var(--k-dim); font-weight: 400; letter-spacing: .04em; text-transform: none; margin-left: 8px; }
+.k-units tr.grp.called td { background: #2a0e0b; color: #ffb2aa; }
+.k-units tr.u td:first-child { border-left: 4px solid var(--st); font-weight: 600; color: var(--k-fg); font-size: 14px; }
+.k-units tr.u:nth-child(even) td { background: var(--k-alt); }
+.k-units tr.u.nh td { color: var(--k-dim); }
+.k-units tr.u.flash td { background: #3a120e; }
+.k-units .st { display: inline-flex; align-items: center; gap: 7px; }
+.k-units .st b { min-width: 34px; text-align: center; padding: 2px 4px; border-radius: 2px; background: var(--st); color: #071014; font-weight: 600; }
+.k-units .st.nh b { background: transparent; color: var(--k-dim); box-shadow: inset 0 0 0 1px var(--s-nh); }
+.k-units .t { color: var(--k-dim); }
+.k-units .t.warn { color: var(--s-resp); }
+.k-log { font: 12px/1.3 "IBM Plex Mono", monospace; display: grid; align-content: start; }
+.k-log div { display: grid; grid-template-columns: 62px 40px 1fr; gap: 6px; padding: 4px 10px; border-bottom: 1px solid #1a232b; }
+.k-log div span:first-child { color: var(--k-dim); }
+.k-log div b { color: var(--k-fg); }
+.k-log div em { font-style: normal; color: var(--st, var(--k-fg)); }
+.k-log div.pri { background: #ffcf33; color: #1b1400; }
+.k-log div.pri span, .k-log div.pri b, .k-log div.pri em { color: #1b1400; }
+.k-bottom { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; background: var(--s-out); color: #fff; padding: 8px 12px; font: 600 13px/1 "IBM Plex Mono", monospace; letter-spacing: .04em; }
+.k-bottom .k { background: #fff; color: var(--s-out); padding: 3px 7px; border-radius: 2px; }
+.k-bottom .big { font: 700 20px/1 "Barlow Condensed", sans-serif; letter-spacing: .04em; }
+.k-bottom button { margin-left: auto; font: 600 12px/1 "IBM Plex Mono", monospace; background: #fff; color: var(--s-out); border: 0; border-radius: 2px; padding: 7px 12px; }
+.k-keys { grid-column: 1 / -1; display: flex; gap: 16px; font: 11px/1 "IBM Plex Mono", monospace; color: var(--k-dim); padding: 2px 4px; }
+.k-keys kbd { font: inherit; color: var(--k-fg); border: 1px solid var(--k-line); border-bottom-width: 2px; border-radius: 3px; padding: 1px 5px; margin-right: 4px; background: var(--k-panel); }
+.k-phone { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; margin-top: 14px; align-items: start; }
+.k-phone .k-explain { color: var(--k-head); font-size: 13px; }
+.k-phone .k-explain h4 { margin: 0 0 6px; font: 600 11px/1 "IBM Plex Mono", monospace; letter-spacing: .12em; color: var(--k-dim); }
+.k-phone .k-explain ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.k-mobile { border: 1px solid var(--k-line); border-radius: 18px; padding: 10px 0; background: var(--k-panel); overflow: hidden; }
+.k-mobile .mh { display: flex; justify-content: space-between; padding: 0 12px 8px; font: 600 12px/1 "IBM Plex Mono", monospace; color: var(--k-head); border-bottom: 1px solid var(--k-line); }
+.k-mobile table.k-units { font-size: 11.5px; table-layout: fixed; }
+.k-mobile .k-units th:nth-child(1) { width: 46px; } .k-mobile .k-units th:nth-child(3) { width: 64px; text-align: right; }
+.k-mobile table.k-units td { padding: 6px 6px; white-space: normal; }
+.k-mobile table.k-units tr.u td:last-child { white-space: nowrap; text-align: right; }
+.k-mobile .k-units .st { display: inline; } .k-mobile .k-units .st b { display: inline-block; margin-right: 6px; }
+.k-mobile table.k-units td:first-child { font-size: 13px; }
+@media (max-width: 760px) { .k-phone { grid-template-columns: 1fr; } }
+
 .foot { color: var(--muted); font-size: 14px; max-width: 70ch; }
 </style>
 
 <div class="wrap">
   <header class="intro">
     <p><a href="./" style="color:inherit">← Back to the app</a></p>
-    <h1>Turnout Board — four looks</h1>
-    <p>The same screens drawn four ways: the Live view on a phone, a My board tile wall as it would look on a TV, the full-screen turnout alarm, and each look's colours and type. The data is the same in every one so you can compare like for like.</p>
+    <h1>Turnout Board — design options</h1>
+    <p>The same screens drawn several ways: the Live view on a phone, a My board tile wall as it would look on a TV, the full-screen turnout alarm, and each look's colours and type. The data is the same in every one so you can compare like for like.</p>
     <p>Status colours keep the same meaning throughout: <b>turned out</b>, responding, at incident, out of area, available, on station.</p>
   </header>
   <nav class="jump" id="jump"></nav>
   <main id="dirs"></main>
+
+  <section class="dir" id="dir-E">
+    <div class="dir-head"><h2>E. Dispatch console</h2><div class="tag">Styled on a control-room CAD screen: rows instead of tiles, colour only on a thin edge strip and the K code chip, everything timed. Built for watching the whole region at a desk.</div><div class="letter">E</div></div>
+    <div class="dE">
+      <div class="k-frame">
+        <div class="k-top"><span class="brand">TURNOUTS // AKL</span><span class="live"><i></i>LIVE · FIRE AUCKLAND</span>
+          <span class="counts"><span>OUT <b>5</b></span><span>AVAIL <b>1</b></span><span>STN <b>2</b></span><span>PRIORITY <b>1</b></span></span><span class="clock">14:02:37</span></div>
+        <div class="k-panel"><h4>ACTIVE JOBS <span>3</span></h4>
+          <div class="k-jobs">
+            <div class="k-job"><div class="l1">J-0142 <span>14:02:11 · 0:26</span></div><div class="stn">Auckland City</div><div class="units"><i style="--st:var(--s-out)">201 T/O</i><i style="--st:var(--s-resp)">205 K1</i></div></div>
+            <div class="k-job inc"><div class="l1">J-0141 <span>13:54:20 · 8:17</span></div><div class="stn">Parnell + Grey Lynn</div><div class="units"><i style="--st:var(--s-inc)">251 K99</i><i style="--st:var(--s-inc)">261 K2</i></div><div class="sit">K99 · property fire, well involved</div></div>
+            <div class="k-job inc"><div class="l1">J-0139 <span>13:15:02 · 47:35</span></div><div class="stn">Auckland City</div><div class="units"><i style="--st:var(--s-inc)">206 K2</i></div><div class="sit" style="color:var(--k-dim)">K77 · nothing showing</div></div>
+            <div class="k-job done"><div class="l1">J-0137 <span>12:31:44 · closed</span></div><div class="stn">Remuera</div><div class="units"><i style="--st:var(--s-stn)">211 K7</i></div></div>
+          </div>
+        </div>
+        <div class="k-panel"><h4>UNITS <span>grouped by station · 12 shown · tap a row to set K code</span></h4><div style="overflow:auto"><table class="k-units"><thead><tr><th>UNIT</th><th>STATUS</th><th>IN STATUS</th><th>LAST HEARD</th><th>JOB</th></tr></thead><tbody><tr class="grp called"><td colspan="5">AUCKLAND CITY<span>called · 14:02:11</span></td></tr><tr class="u flash" style="--st:var(--s-out)"><td>201</td><td><span class="st"><b>T/O</b>Turned out</span></td><td><span class="t">0:26</span></td><td><span class="t">14:02:11</span></td><td>J-0142</td></tr><tr class="u" style="--st:var(--s-resp)"><td>205</td><td><span class="st"><b>K1</b>Responding</span></td><td><span class="t warn">0:19</span></td><td><span class="t">14:02:18</span></td><td>J-0142</td></tr><tr class="u" style="--st:var(--s-inc)"><td>206</td><td><span class="st"><b>K2</b>At incident</span></td><td><span class="t">38:40</span></td><td><span class="t">13:23:57</span></td><td>J-0139</td></tr><tr class="u nh" style="--st:var(--s-nh)"><td>207</td><td><span class="st nh"><b>··</b>Not heard</span></td><td><span class="t">—</span></td><td><span class="t">—</span></td><td></td></tr><tr class="grp"><td colspan="5">PARNELL<span>last turnout 41m</span></td></tr><tr class="u" style="--st:var(--s-inc)"><td>251</td><td><span class="st"><b>K99</b>Well-involved fire</span></td><td><span class="t">4:02</span></td><td><span class="t">13:58:35</span></td><td>J-0141</td></tr><tr class="u" style="--st:var(--s-stn)"><td>255</td><td><span class="st"><b>K7</b>On station</span></td><td><span class="t">1:12:09</span></td><td><span class="t">12:50:28</span></td><td></td></tr><tr class="grp"><td colspan="5">GREY LYNN<span>last turnout 41m</span></td></tr><tr class="u" style="--st:var(--s-inc)"><td>261</td><td><span class="st"><b>K2</b>At incident</span></td><td><span class="t">3:47</span></td><td><span class="t">13:58:50</span></td><td>J-0141</td></tr><tr class="grp"><td colspan="5">BALMORAL<span></span></td></tr><tr class="u" style="--st:var(--s-avail)"><td>611</td><td><span class="st"><b>K4</b>Available on radio</span></td><td><span class="t">6:15</span></td><td><span class="t">13:56:22</span></td><td></td></tr><tr class="grp"><td colspan="5">MT ROSKILL<span></span></td></tr><tr class="u" style="--st:var(--s-ooa)"><td>621</td><td><span class="st"><b>K3</b>Out of area</span></td><td><span class="t">22:31</span></td><td><span class="t">13:40:06</span></td><td></td></tr><tr class="grp"><td colspan="5">REMUERA<span></span></td></tr><tr class="u" style="--st:var(--s-stn)"><td>211</td><td><span class="st"><b>K7</b>On station</span></td><td><span class="t">2:04:51</span></td><td><span class="t">11:57:46</span></td><td></td></tr></tbody></table></div></div>
+        <div class="k-panel"><h4>RADIO LOG <span>newest first</span></h4>
+          <div class="k-log">
+            <div style="--st:var(--s-out)"><span>14:02:18</span><b>205</b><em>K1 Responding</em></div>
+            <div style="--st:var(--s-out)"><span>14:02:11</span><b>201</b><em>Turnout · Auckland City</em></div>
+            <div class="pri"><span>14:01:02</span><b>251</b><em>PRIORITY CALL</em></div>
+            <div style="--st:var(--s-inc)"><span>13:58:50</span><b>261</b><em>K2 At incident</em></div>
+            <div style="--st:var(--s-inc)"><span>13:58:35</span><b>251</b><em>K99 Well-involved fire</em></div>
+            <div style="--st:var(--s-avail)"><span>13:56:22</span><b>611</b><em>K4 Available on radio</em></div>
+            <div style="--st:var(--s-resp)"><span>13:55:04</span><b>261</b><em>K1 Responding</em></div>
+            <div style="--st:var(--s-resp)"><span>13:54:51</span><b>251</b><em>K1 Responding</em></div>
+            <div style="--st:var(--s-out)"><span>13:54:20</span><b>—</b><em>Turnout · Parnell, Grey Lynn</em></div>
+            <div style="--st:var(--s-ooa)"><span>13:40:06</span><b>621</b><em>K3 Out of area</em></div>
+            <div style="--st:var(--s-inc)"><span>13:23:57</span><b>206</b><em>K2 At incident</em></div>
+          </div>
+        </div>
+        <div class="k-bottom"><span class="k">TURNOUT</span><span class="big">AUCKLAND CITY 201</span><span>14:02:11 · audio un-muted 45s</span><button type="button">ACK  [F1]</button></div>
+        <div class="k-keys"><span><kbd>F1</kbd>Acknowledge</span><span><kbd>/</kbd>Find a unit</span><span><kbd>K</kbd>Set K code on selected row</span><span><kbd>B</kbd>Switch board</span><span><kbd>T</kbd>TV mode</span></div>
+      </div>
+      <div class="k-phone">
+        <div class="k-explain">
+          <h4>HOW IT WORKS</h4>
+          <ul>
+            <li>Every truck is one row. The thin strip on the left and the K code chip carry the status colour; the rest stays calm, so the one red row stands out.</li>
+            <li>"In status" counts up, so you can see 205 has been responding for 19 seconds and 255 has sat on station for over an hour. Responding times turn amber.</li>
+            <li>Jobs are on the left with their units and the first-arrival code (K99, K77). The radio log runs down the right, and priority calls get a yellow row.</li>
+            <li>A turnout shows as a red alarm bar along the bottom instead of covering the screen. It still sounds and un-mutes the radio, and F1 acknowledges it.</li>
+            <li>On a phone (right) it shrinks to the units table alone, still grouped by station.</li>
+          </ul>
+        </div>
+        <div class="k-mobile"><div class="mh"><span>UNITS</span><span>14:02:37</span></div><table class="k-units"><thead><tr><th>UNIT</th><th>STATUS</th><th>IN STATUS</th></tr></thead><tbody><tr class="grp called"><td colspan="3">AUCKLAND CITY<span>called · 14:02:11</span></td></tr><tr class="u flash" style="--st:var(--s-out)"><td>201</td><td><span class="st"><b>T/O</b>Turned out</span></td><td><span class="t">0:26</span></td></tr><tr class="u" style="--st:var(--s-resp)"><td>205</td><td><span class="st"><b>K1</b>Responding</span></td><td><span class="t warn">0:19</span></td></tr><tr class="u" style="--st:var(--s-inc)"><td>206</td><td><span class="st"><b>K2</b>At incident</span></td><td><span class="t">38:40</span></td></tr><tr class="u nh" style="--st:var(--s-nh)"><td>207</td><td><span class="st nh"><b>··</b>Not heard</span></td><td><span class="t">—</span></td></tr><tr class="grp"><td colspan="3">PARNELL<span>last turnout 41m</span></td></tr><tr class="u" style="--st:var(--s-inc)"><td>251</td><td><span class="st"><b>K99</b>Well-involved fire</span></td><td><span class="t">4:02</span></td></tr><tr class="u" style="--st:var(--s-stn)"><td>255</td><td><span class="st"><b>K7</b>On station</span></td><td><span class="t">1:12:09</span></td></tr><tr class="grp"><td colspan="3">GREY LYNN<span>last turnout 41m</span></td></tr><tr class="u" style="--st:var(--s-inc)"><td>261</td><td><span class="st"><b>K2</b>At incident</span></td><td><span class="t">3:47</span></td></tr></tbody></table></div>
+      </div>
+    </div>
+    <div class="notes">
+      <div><h4>Good at</h4><ul><li>Shows the most trucks per screen, and the whole region at once</li><li>Time in status and the radio log at a glance</li><li>Keyboard-driven, feels like the real thing</li></ul></div>
+      <div><h4>Watch out for</h4><ul><li>Dense: hard to read from across a room</li><li>Needs a wide screen; on a phone it's a list</li><li>Less fun than the tile boards</li></ul></div>
+      <div><h4>Best for</h4><ul><li>A desk monitor next to the scanner</li><li>Following several jobs at once</li></ul></div>
+    </div>
+  </section>
   <p class="foot">Nothing here changes the app. Pick a direction (or mix them, e.g. B's chevrons on A's palette) and it can be rolled into <code>styles.css</code>; the status colours, fonts and radii are all tokens already, so a switch is mostly a token swap plus a few accents.</p>
 </div>
 
@@ -317,5 +439,6 @@ function render(d) {
 }
 
 document.getElementById("dirs").innerHTML = DIRS.map(render).join("");
-document.getElementById("jump").innerHTML = DIRS.map((d) => `<a href="#dir-${d.id}"><b style="background:${d.dot}"></b>${d.id}. ${d.name}</a>`).join("");
+document.getElementById("jump").innerHTML = [...DIRS, { id: "E", name: "Dispatch console", dot: "#4d9bff" }]
+  .map((d) => `<a href="#dir-${d.id}"><b style="background:${d.dot}"></b>${d.id}. ${d.name}</a>`).join("");
 </script>
