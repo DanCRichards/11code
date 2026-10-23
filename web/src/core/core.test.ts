@@ -49,3 +49,22 @@ describe("interpretation", () => {
     expect(suggestForStationCode("186661", ix)).toBeUndefined();
   });
 });
+
+describe("jobs", () => {
+  it("groups nearby turnouts and attaches responding appliances", async () => {
+    const { groupJobs } = await import("./incidents");
+    const t0 = Date.now() - 600_000;
+    const evs = interpretAll([
+      call("182261", "station", t0),                    // Grey Lynn 261
+      call("182205", "station", t0 + 40_000),           // Auckland City 205, 2.1 km away
+      call("182850", "station", t0 + 60_000),           // Albany station, far away: new job
+      call("D95D1-F1A0C2", "appliance-msg", t0 + 90_000), // 205 responding
+      call("182821", "station", t0 + 400_000),          // Birkenhead, much later: new job
+    ], ix);
+    const board = deriveBoard(evs, ix, Date.now(), new Set());
+    const jobs = groupJobs(evs, ix, board, 180_000);
+    expect(jobs.map((j) => j.stationIds)).toEqual([["birkenhead"], ["albany"], ["grey-lynn", "auckland-city"]]);
+    expect(jobs[2].applianceIds).toEqual(["261", "205"]);
+    expect(jobs[2].active).toBe(true);
+  });
+});

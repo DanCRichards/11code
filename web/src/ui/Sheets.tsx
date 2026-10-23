@@ -1,12 +1,13 @@
 import { STATE_LABEL } from "../core/derive";
 import { demoActions } from "../sources/controller";
-import { useStore } from "../store";
+import { store, useStore } from "../store";
 import { ago, clockTime, EventPill, Sheet, StatePill, stateVar, useBoard } from "./common";
 import type { Nav } from "./nav";
 
 export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClose: () => void }) {
   const { ix, board, codebook, now } = useBoard();
   const mode = useStore((s) => s.settings.mode);
+  const watched = useStore((s) => s.settings.watched.includes(id));
   const s = ix.station.get(id);
   if (!s) return null;
   const b = board.stations.get(id)!;
@@ -14,6 +15,7 @@ export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClo
   const codes = codebook.turnoutCodes.filter((c) => c.stationId === id);
   return (
     <Sheet title={s.name} sub={`Station ${s.number || "number unknown"} · ${b.turnoutsToday} turnout${b.turnoutsToday === 1 ? "" : "s"} today`} onClose={onClose}>
+      <button className="btn" aria-pressed={watched} onClick={() => store.toggleWatch(id)}>{watched ? "★ Watching this station" : "☆ Watch this station"}</button>
       <dl className="kv">
         <dt>Last turnout</dt><dd>{b.lastTurnoutEvent ? `${b.lastTurnoutEvent.title}, ${ago(b.lastTurnout, now)}` : "None heard"}</dd>
         <dt>Turnout codes</dt>

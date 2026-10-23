@@ -6,11 +6,15 @@ import { validateCodebook } from "../core/validate";
 import { resetLocalCodebook, saveCodebook, startSource } from "../sources/controller";
 import { BUNDLED, store, useStore } from "../store";
 import { ago, Sheet, useBoard } from "./common";
+import { askNotifications, chime, unlockAlertAudio } from "./alerts";
+import { DemoRadio } from "./DemoRadio";
+import { InputPanel } from "./Input";
+import { ImportPanel } from "./Player";
 
-type Sub = "inbox" | "stations" | "appliances" | "codes" | "messages" | "source" | "backup";
+type Sub = "source" | "alerts" | "inbox" | "stations" | "appliances" | "codes" | "messages" | "backup";
 const SUBS: [Sub, string][] = [
-  ["inbox", "Unknown codes"], ["stations", "Stations"], ["appliances", "Appliances"], ["codes", "Turnout codes"],
-  ["messages", "Messages"], ["source", "Data source"], ["backup", "Import / export"],
+  ["source", "Radio source"], ["alerts", "Alerts"], ["inbox", "Unknown codes"], ["stations", "Stations"],
+  ["appliances", "Appliances"], ["codes", "Turnout codes"], ["messages", "Messages"], ["backup", "Import / export"],
 ];
 const STATES: ApplianceState[] = ["turned-out", "responding", "at-incident", "out-of-area", "available-radio", "on-station", "status-unknown"];
 const clone = (cb: Codebook): Codebook => JSON.parse(JSON.stringify(cb));
@@ -43,15 +47,15 @@ function Msg({ msg }: { msg: { ok: boolean; text: string } | null }) {
 }
 
 export function DataView({ sub: initial }: { sub?: string }) {
-  const [sub, setSub] = useState<Sub>((SUBS.find((s) => s[0] === initial)?.[0]) ?? "inbox");
+  const [sub, setSub] = useState<Sub>((SUBS.find((s) => s[0] === initial)?.[0]) ?? "source");
   const { board } = useBoard();
   const origin = useStore((s) => s.codebookOrigin);
   const cb = useStore((s) => s.codebook);
   return (
     <>
-      <h1 className="page-title">Codebook &amp; data</h1>
+      <h1 className="page-title">Settings</h1>
       <p className="note">
-        Version {cb.version} · {origin === "backend" ? "shared from the backend" : origin === "local" ? "edited in this browser" : "bundled with the app"} · updated {new Date(cb.updatedAt).toLocaleString("en-NZ")}
+        Codebook version {cb.version} · {origin === "backend" ? "shared from the backend" : origin === "local" ? "edited in this browser" : "bundled with the app"} · updated {new Date(cb.updatedAt).toLocaleString("en-NZ")}
       </p>
       <div className="subtabs" role="tablist">
         {SUBS.map(([key, label]) => (
@@ -66,6 +70,7 @@ export function DataView({ sub: initial }: { sub?: string }) {
       {sub === "codes" && <CodesEditor />}
       {sub === "messages" && <MessagesEditor />}
       {sub === "source" && <SourcePanel />}
+      {sub === "alerts" && <AlertsPanel />}
       {sub === "backup" && <Backup />}
     </>
   );
@@ -488,7 +493,10 @@ function SourcePanel() {
           <b>Live backend</b><span className="small muted">Real calls from your decoder (an SDR on a Raspberry Pi), and a codebook shared by everyone using it.</span>
         </button>
       </div>
-      <section className="panel">
+      {settings.mode === "demo" && <DemoRadio />}
+      {settings.mode === "input" && <InputPanel />}
+      {settings.mode === "file" && <ImportPanel />}
+      {settings.mode === "backend" && <section className="panel">
         <h2>Backend</h2>
         <div className="form">
           <label className="field"><span>Backend address (blank = the server this page came from)</span>
@@ -505,6 +513,51 @@ function SourcePanel() {
           )}
         </div>
         <p className="note">Run <code>python -m server --static web/dist</code> on the machine with the radio. It serves this same app, the live call feed and the shared codebook. See <code>server/README.md</code>.</p>
+      </section>}
+      {settings.mode !== "backend" && (
+        <p className="note">Have a Raspberry Pi with an SDR running the backend? <button className="linkbtn" onClick={connect}>Connect to a backend</button></p>
+      )}
+    </>
+  );
+}
+
+function AlertsPanel() {
+  const alerts = useStore((s) => s.settings.alerts);
+  const watched = useStore((s) => s.settings.watched);
+  const cb = useStore((s) => s.codebook);
+  const [note, setNote] = useState("");
+  const perm = typeof Notification !== "undefined" ? Notification.permission : "unsupported";
+  return (
+    <>
+      <section className="panel">
+        <h2>Alerts <small>while this page is open</small></h2>
+        <label className="check"><input type="checkbox" checked={alerts.prioritySound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ prioritySound: e.target.checked }); }} /> Sound an alarm for priority calls</label>
+        <label className="check"><input type="checkbox" checked={alerts.watchedSound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ watchedSound: e.target.checked }); }} /> Chime when a watched station is turned out</label>
+        <label className="check"><input type="checkbox" checked={alerts.notify} onChange={async (e) => {
+          if (e.target.checked && !(await askNotifications())) { setNote("Notifications are blocked for this site. Allow them in the browser's site settings."); return; }
+          store.alertSettings({ notify: e.target.checked });
+        }} /> Also show a notification when the page is in the background</label>
+        <div className="row">
+          <button className="btn" onClick={() => { unlockAlertAudio(); chime("priority"); }}>Test priority alarm</button>
+          <button className="btn" onClick={() => { unlockAlertAudio(); chime("turnout"); }}>Test turnout chime</button>
+        </div>
+        {note && <p className="error">{note}</p>}
+        {perm === "unsupported" && <p className="note">This browser doesn't support notifications here. On iPhone, add the site to your home screen first.</p>}
+        <p className="note">Phones vibrate for priority calls where the browser allows it. Alerts only fire for calls heard while the page is open.</p>
+      </section>
+      <section className="panel">
+        <h2>Watched stations <small>{watched.length} starred</small></h2>
+        <p className="note">Watched stations are starred on the board, listed first, and chime when they're turned out. Star a station from its page (tap it on the map or in Stations).</p>
+        {watched.length > 0 && (
+          <ul className="list">
+            {watched.map((id) => (
+              <li key={id} className="item" style={{ cursor: "default" }}>
+                <span className="t">★</span><span className="what"><b>{cb.stations.find((s) => s.id === id)?.name ?? id}</b></span>
+                <button className="btn" onClick={() => store.toggleWatch(id)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

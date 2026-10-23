@@ -27,12 +27,21 @@ export interface InputState {
   rate?: number; // capture sample rate
 }
 
+export interface AlertSettings {
+  prioritySound: boolean; // chime for priority calls
+  watchedSound: boolean; // chime when a watched station is turned out
+  notify: boolean; // system notification for those, when the page is in the background
+}
+
 export interface Settings {
   mode: Mode;
   backendUrl: string; // "" = same origin as the page
   apiKey: string;
   sim: SimSettings;
   input: InputSettings;
+  alerts: AlertSettings;
+  watched: string[]; // station ids starred by the user
+  showMap: boolean | null; // null = default for the screen size
   dismissed: string[]; // inbox keys the user chose to ignore
 }
 
@@ -97,6 +106,9 @@ const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   sim: { auto: true, speed: 20, snr: 8, sound: false },
   input: { deviceId: "", monitor: true, volume: 0.8 },
+  alerts: { prioritySound: true, watchedSound: true, notify: false },
+  watched: [],
+  showMap: null,
   dismissed: [],
 };
 
@@ -106,6 +118,7 @@ function initialSettings(): Settings {
     ...DEFAULT_SETTINGS, ...saved,
     sim: { ...DEFAULT_SETTINGS.sim, ...saved.sim },
     input: { ...DEFAULT_SETTINGS.input, ...saved.input },
+    alerts: { ...DEFAULT_SETTINGS.alerts, ...saved.alerts },
   };
   s.sim.sound = false; // audio needs a tap each visit
   // ?backend=https://host:8080 (or #backend=... is not allowed in some hosts) preselects live mode.
@@ -140,11 +153,18 @@ export const store = {
   },
   settings(patch: Partial<Settings>) {
     const settings = { ...state.settings, ...patch };
-    save("tb.settings", { ...settings, sim: { ...settings.sim }, input: { ...settings.input } });
+    save("tb.settings", settings);
     store.set({ settings });
   },
   sim(patch: Partial<SimSettings>) {
     store.settings({ sim: { ...state.settings.sim, ...patch } });
+  },
+  alertSettings(patch: Partial<AlertSettings>) {
+    store.settings({ alerts: { ...state.settings.alerts, ...patch } });
+  },
+  toggleWatch(stationId: string) {
+    const w = state.settings.watched;
+    store.settings({ watched: w.includes(stationId) ? w.filter((x) => x !== stationId) : [...w, stationId] });
   },
   inputSettings(patch: Partial<InputSettings>) {
     store.settings({ input: { ...state.settings.input, ...patch } });

@@ -4,14 +4,16 @@ import type { ApplianceState, EventType } from "../core/types";
 import { ago, StatePill, stateVar, useBoard } from "./common";
 import { LogItem, openEvent } from "./LiveView";
 import type { Nav } from "./nav";
+import { useStore } from "../store";
 
+const STATUS_ORDER: ApplianceState[] = ["turned-out", "responding", "at-incident", "out-of-area", "status-unknown", "available-radio", "on-station", "not-heard"];
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
 
 export function AppliancesView({ nav, filter: initial }: { nav: Nav; filter?: string }) {
   const { ix, board, now } = useBoard();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState(initial ?? "all");
-  const [sort, setSort] = useState<"heard" | "station" | "callsign">("heard");
+  const [sort, setSort] = useState<"status" | "heard" | "station" | "callsign">("status");
 
   const rows = useMemo(() => [...ix.appliance.values()].map((a) => ({
     a, b: board.appliances.get(a.id)!, station: ix.station.get(a.stationId)!,
@@ -27,7 +29,8 @@ export function AppliancesView({ nav, filter: initial }: { nav: Nav; filter?: st
   const shown = rows
     .filter((r) => test(r.b.state))
     .filter((r) => !needle || norm(`${r.a.callsign} ${r.station.name} ${r.a.selcallId}`).includes(needle))
-    .sort((x, y) => sort === "heard" ? (y.b.lastHeard ?? 0) - (x.b.lastHeard ?? 0)
+    .sort((x, y) => sort === "status" ? STATUS_ORDER.indexOf(x.b.state) - STATUS_ORDER.indexOf(y.b.state) || (y.b.lastHeard ?? 0) - (x.b.lastHeard ?? 0)
+      : sort === "heard" ? (y.b.lastHeard ?? 0) - (x.b.lastHeard ?? 0)
       : sort === "station" ? x.station.name.localeCompare(y.station.name) || x.a.callsign.localeCompare(y.a.callsign)
       : x.a.callsign.localeCompare(y.a.callsign, undefined, { numeric: true }));
 
@@ -47,7 +50,7 @@ export function AppliancesView({ nav, filter: initial }: { nav: Nav; filter?: st
           <span className="muted small">{shown.length} appliance{shown.length === 1 ? "" : "s"}</span>
           <label className="small muted">Sort{" "}
             <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} aria-label="Sort appliances">
-              <option value="heard">Last heard</option><option value="station">Station</option><option value="callsign">Callsign</option>
+              <option value="status">Status</option><option value="heard">Last heard</option><option value="station">Station</option><option value="callsign">Callsign</option>
             </select>
           </label>
         </div>
@@ -71,14 +74,15 @@ export function AppliancesView({ nav, filter: initial }: { nav: Nav; filter?: st
 
 export function StationsView({ nav }: { nav: Nav }) {
   const { ix, board, now } = useBoard();
+  const watched = useStore((s) => s.settings.watched);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<"recent" | "name" | "number">("recent");
   const needle = norm(q);
   const rows = [...ix.station.values()]
     .filter((s) => !needle || norm(`${s.name} ${s.number}`).includes(needle))
     .map((s) => ({ s, b: board.stations.get(s.id)!, apps: [...ix.appliance.values()].filter((a) => a.stationId === s.id) }))
-    .sort((x, y) => sort === "recent" ? (y.b.lastTurnout ?? 0) - (x.b.lastTurnout ?? 0) || x.s.name.localeCompare(y.s.name)
-      : sort === "name" ? x.s.name.localeCompare(y.s.name) : (x.s.number || "99").localeCompare(y.s.number || "99"));
+    .sort((x, y) => Number(watched.includes(y.s.id)) - Number(watched.includes(x.s.id)) || (sort === "recent" ? (y.b.lastTurnout ?? 0) - (x.b.lastTurnout ?? 0) || x.s.name.localeCompare(y.s.name)
+      : sort === "name" ? x.s.name.localeCompare(y.s.name) : (x.s.number || "99").localeCompare(y.s.number || "99")));
   return (
     <>
       <h1 className="page-title">Stations</h1>
@@ -98,7 +102,7 @@ export function StationsView({ nav }: { nav: Nav }) {
               <button className="item" onClick={() => nav.station(s.id)}>
                 <span className="callsign muted" style={{ fontSize: 18 }}>{s.number || "–"}</span>
                 <span className="what">
-                  <b>{s.name}</b>
+                  <b>{watched.includes(s.id) ? "★ " : ""}{s.name}</b>
                   <span>{b.lastTurnout ? `Turned out ${ago(b.lastTurnout, now)} · ${b.turnoutsToday} today` : "No turnouts heard"}</span>
                 </span>
                 <span className="row" style={{ gap: 4 }} aria-label="Appliance statuses">
@@ -118,7 +122,7 @@ const LOG_FILTERS: [string, string, EventType[] | null][] = [
   ["turnouts", "Turnouts", ["turnout", "station-turnout"]],
   ["status", "Statuses", ["status"]],
   ["priority", "Priority", ["priority"]],
-  ["other", "Other calls", ["appliance-call"]],
+  ["other", "Routine", ["appliance-call"]],
   ["unknown", "Unknown", ["unknown-code", "unknown-status"]],
   ["unreadable", "Unreadable", ["unreadable"]],
 ];

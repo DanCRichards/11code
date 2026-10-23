@@ -30,13 +30,14 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 
 ## The board
 
-- **Live:** turnouts today, appliances out, priority calls, unknown codes; a map of Auckland stations that light up when turned out; recent turnouts; appliances out; the latest calls. The demo adds radio controls (turn out a station, send a priority call, speed, signal strength, sound).
+- **Live:** turnouts grouped into jobs (stations called close together, with each appliance's current status); a status board of every appliance that's out; "On air" for routine calls, priority calls and status messages; a priority-call banner with an alarm; and a map you can show or hide.
+- **Settings** (the gear): radio source (demo, recording, audio input, backend), alerts (priority alarm, chime for watched stations, background notifications), and the codebook.
 - **Appliances:** every fire engine with its current status, searchable and filterable.
 - **Stations:** last turnout, turnouts today and appliance statuses for every station.
 - **Log:** every call, with filters for turnouts, statuses, priority calls, unknown codes and unreadable calls.
 - **Audio input:** listen to a scanner through a microphone, line-in or USB sound card. Calls are decoded live in the browser, and the input can be played through your speakers or headphones at the same time, with a level meter to set the scanner volume. Needs https (the Pages site is) and a browser that allows audio input.
 - **Recordings:** open an audio file or phone video (or a generated sample). It's decoded in the browser, then plays back with a waveform scrubber; each call appears on the board as you hear it. Tap a call to jump to it.
-- **Codebook:** the unknown-codes inbox (assign a heard code to a station or appliance, with suggestions), editors for stations, appliances, turnout codes and message meanings, the data source switch, and JSON import/export. In live mode, edits are saved to the backend for everyone. In demo mode they're saved in your browser.
+- **Codebook** (in Settings): the unknown-codes inbox (assign a heard code to a station or appliance, with suggestions), editors for stations, appliances, turnout codes and message meanings, the data source switch, and JSON import/export. In live mode, edits are saved to the backend for everyone. In demo mode they're saved in your browser.
 
 ### GitHub Pages
 
