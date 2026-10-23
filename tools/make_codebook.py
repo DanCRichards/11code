@@ -125,9 +125,11 @@ def main():
         # Final tone of a short appliance call (e.g. C072D2). Meanings are a
         # guess carried over from SepacDecoder.py and are unverified.
         "callTypes": [
+            # The final tone is the call type. B and C confirmed: the truck asking
+            # Comcen to respond, urgently (priority) or not (routine).
             {"final": "4", "label": "Turnout acknowledgement", "priority": False, "verified": False},
-            {"final": "C", "label": "Routine call", "priority": False, "verified": False},
-            {"final": "B", "label": "Priority call", "priority": True, "verified": False},
+            {"final": "C", "label": "Routine call", "priority": False, "verified": True},
+            {"final": "B", "label": "Priority call", "priority": True, "verified": True},
         ],
         # Long appliance messages: HEADER-<suffix>. Real suffix meanings are
         # unknown; the suffixes here are the demo's own encoding ("F" + K

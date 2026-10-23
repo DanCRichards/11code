@@ -64,8 +64,10 @@ them with the real suffixes once they're confirmed from recordings.
 - `182` + station number + `0` is just the radio's **ACK** of a turnout, a few seconds after it;
   it is not a call-out. The app reads it (so it isn't an "unknown code") but leaves it off every
   view (`useBoard` filters `station-ack`) and never alarms on it.
-- Appliance message: `HEADER-SEP+BODY` (13 tones); short appliance call is header + final tone
-  (`B` = priority, `C` = routine, `4` = turnout ack; unverified).
+- Appliance message: `HEADER-SEP+BODY` (13 tones); short appliance call is header + final tone,
+  and the final tone is the call type. `B` = priority call (the truck asking Comcen to respond to
+  them urgently) and `C` = routine call (asking Comcen to respond when they can) are confirmed;
+  `4` = turnout ack is still a guess.
 
 ## Layout and checks
 

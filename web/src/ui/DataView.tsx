@@ -493,7 +493,7 @@ function MessagesEditor() {
       </section>
       <section className="panel">
         <h2>Short appliance calls <button className="btn" onClick={() => setOpenType(null)}>Add</button></h2>
-        <p className="note">Short calls like <code>C072D2</code> are a unit ID plus one final tone. The final tone sets the call type. Priority calls raise the banner on the live board. These meanings came from the original decoder and are unconfirmed.</p>
+        <p className="note">Short calls like <code>C072D2</code> are a unit ID plus one final tone. The final tone sets the call type: <code>B</code> is a priority call and <code>C</code> a routine call, both the truck asking Comcen to respond (urgently, or when they can). Priority calls raise the banner on the live board. Other final tones are unconfirmed.</p>
         <ul className="list">
           {cb.callTypes.map((t) => (
             <li key={t.final}><button className="item" onClick={() => setOpenType(t)}>

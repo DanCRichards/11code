@@ -122,7 +122,7 @@ export function AlarmOverlay({ hits, onAck, ix }: { hits: AlarmHit[]; onAck: () 
       <div className="alarm-inner">
         <div className="alarm-kicker">{kicker}</div>
         <Who hit={latest} ix={ix} />
-        <div className="alarm-meta">{clockTime(latest.ev.call.time)}</div>
+        <div className="alarm-meta">{latest.kind === "priority" ? "Asking Comcen to respond · " : ""}{clockTime(latest.ev.call.time)}</div>
         {others.length > 0 && (
           <ul className="alarm-more">
             {others.map((h) => <li key={h.ev.call.id}>{h.kind === "priority" ? "Priority: " : ""}{h.why} <span className="mono">{clockTime(h.ev.call.time)}</span></li>)}
