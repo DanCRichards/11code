@@ -34,7 +34,8 @@ Then open `http://<pi-address>:8080`. The server prints an editing key for chang
 - **My board:** your own grid of trucks, grouped by station and coloured by status. A truck flashes when it's turned out; a whole-station call makes the station's group pulse. Large or compact cells, keep-screen-on, and **TV mode**: a full-window board sized so every truck fits the screen, with a "station called" banner. Open `…/#tv` to start a TV straight in it.
 - **Turnout alarm** (Settings → Alerts): pick stations and trucks; when one is turned out the screen becomes a full-screen alarm showing the truck's callsign and station (or, for a whole-station call, the station and all its trucks). It stays up until you acknowledge it, or clears by itself after 15 s, 30 s or 1 min if you choose.
 - **Priority alarm** (Settings → Alerts): full-screen for priority calls from any truck, or only chosen trucks/stations, showing which truck called. It has the same acknowledge or auto-clear choice.
-- **K codes:** truck statuses show their FENZ K code (K1 Responding, K2 At incident, K3 Out of area, K4 Available, K7 On station). See `CLAUDE.md`.
+- **K codes:** each truck shows the FENZ K code it last sent: K0–K11 statuses (K1 Responding, K2 At incident, K7 On station…) and the first-arrival codes K55, K66, K77, K88 and K99. See `CLAUDE.md` for the list.
+- **Acknowledge** silences everything: the alarm, any chime, and the alert's temporary un-mute. The test buttons in Settings never play over each other.
 - **Mute with auto un-mute:** the speaker button mutes radio audio (monitored input, demo tones, recordings). Any alert or alarm un-mutes it for 45 seconds or a minute, then it mutes again.
 - **Settings** (the gear): radio source (demo, recording, audio input, backend), alerts (priority alarm, chime for watched stations, background notifications), and the codebook.
 - **Appliances:** every fire engine with its current status, searchable and filterable.

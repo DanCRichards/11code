@@ -1,7 +1,7 @@
 {
  "schema": 1,
  "version": 1,
- "updatedAt": "2026-10-23T10:03:42+00:00",
+ "updatedAt": "2026-10-23T11:41:36+00:00",
  "region": "Auckland",
  "stations": [
   {
@@ -1093,6 +1093,13 @@
  ],
  "statusCodes": [
   {
+   "suffix": "F0A0C2",
+   "kCode": "K0",
+   "label": "Not available",
+   "state": "status-unknown",
+   "demo": true
+  },
+  {
    "suffix": "F1A0C2",
    "kCode": "K1",
    "label": "Responding",
@@ -1121,11 +1128,93 @@
    "demo": true
   },
   {
+   "suffix": "F5A0C2",
+   "kCode": "K5",
+   "label": "Available at incident",
+   "state": "at-incident",
+   "demo": true
+  },
+  {
+   "suffix": "F6A0C2",
+   "kCode": "K6",
+   "label": "On pager",
+   "state": "available-radio",
+   "demo": true
+  },
+  {
    "suffix": "F7A0C2",
    "kCode": "K7",
    "label": "On station",
    "state": "on-station",
    "demo": true
+  },
+  {
+   "suffix": "F9A0C2",
+   "kCode": "K9",
+   "label": "Off radio",
+   "state": "status-unknown",
+   "demo": true
+  },
+  {
+   "suffix": "F10A0C",
+   "kCode": "K10",
+   "label": "Recommissioning",
+   "state": "status-unknown",
+   "demo": true
+  },
+  {
+   "suffix": "FBA0C2",
+   "kCode": "KE",
+   "label": "Unable to proceed",
+   "state": "status-unknown",
+   "demo": true
+  },
+  {
+   "suffix": "F11A0C",
+   "kCode": "K11",
+   "label": "Service required",
+   "state": "at-incident",
+   "demo": true
+  },
+  {
+   "suffix": "F55A0C",
+   "kCode": "K55",
+   "label": "Special service",
+   "state": "at-incident",
+   "demo": true,
+   "arrival": true
+  },
+  {
+   "suffix": "F66A0C",
+   "kCode": "K66",
+   "label": "Non-property fire",
+   "state": "at-incident",
+   "demo": true,
+   "arrival": true
+  },
+  {
+   "suffix": "F77A0C",
+   "kCode": "K77",
+   "label": "Nothing showing",
+   "state": "at-incident",
+   "demo": true,
+   "arrival": true
+  },
+  {
+   "suffix": "F88A0C",
+   "kCode": "K88",
+   "label": "Small property fire",
+   "state": "at-incident",
+   "demo": true,
+   "arrival": true
+  },
+  {
+   "suffix": "F99A0C",
+   "kCode": "K99",
+   "label": "Well-involved fire",
+   "state": "at-incident",
+   "demo": true,
+   "arrival": true
   }
  ]
 }

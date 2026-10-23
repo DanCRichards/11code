@@ -95,6 +95,23 @@ describe("K codes", () => {
     expect(stateText("on-station")).toBe("K7 On station");
     expect(stateText("turned-out")).toBe("Turned out");
   });
+
+  it("shows the exact K code heard, like K99, on the board", async () => {
+    const { boardText } = await import("./derive");
+    const evs = interpretAll([call("182821", "station", 1), call("D8611-F1A0C2", "appliance-msg", 2), call("D8611-F99A0C", "appliance-msg", 3)], ix);
+    const ab = deriveBoard(evs, ix, 4, new Set()).appliances.get("821")!;
+    expect(ab.state).toBe("at-incident");
+    expect(boardText(ab)).toBe("K99 Well-involved fire");
+    expect(evs[2].status?.arrival).toBe(true);
+  });
+
+  it("decodes every K code's tones back to the same code", async () => {
+    const { decode, synth } = await import("../decoder/selcall");
+    for (const st of cb.statusCodes) {
+      const code = `D8611-${st.suffix}`;
+      expect(decode(synth(code, 8000, 25), 8000)[0]?.code, st.kCode).toBe(code);
+    }
+  });
 });
 
 describe("priority alarm and un-mute", () => {

@@ -1,4 +1,4 @@
-import { stateText } from "../core/derive";
+import { boardText } from "../core/derive";
 import { demoActions } from "../sources/controller";
 import { store, useStore } from "../store";
 import { ago, clockTime, EventPill, Sheet, StatePill, stateVar, useBoard } from "./common";
@@ -32,8 +32,8 @@ export function StationSheet({ id, nav, onClose }: { id: string; nav: Nav; onClo
               <li key={a.id}>
                 <button className="item" onClick={() => nav.appliance(a.id)}>
                   <span className="callsign" style={{ color: stateVar(ab.state) }}>{a.callsign}</span>
-                  <span className="what"><b>{stateText(ab.state)}</b><span>{ab.lastHeard ? `heard ${ago(ab.lastHeard, now)}` : "not heard yet"}</span></span>
-                  <StatePill state={ab.state} />
+                  <span className="what"><b>{boardText(ab)}</b><span>{ab.lastHeard ? `heard ${ago(ab.lastHeard, now)}` : "not heard yet"}</span></span>
+                  <StatePill state={ab.state} status={ab.status} />
                 </button>
               </li>
             );
@@ -72,7 +72,7 @@ export function ApplianceSheet({ id, nav, onClose }: { id: string; nav: Nav; onC
   const b = board.appliances.get(id)!;
   const codes = codebook.turnoutCodes.filter((c) => c.applianceId === id);
   return (
-    <Sheet title={`${st?.name ?? ""} ${a.callsign}`} sub={<><StatePill state={b.state} /> {b.lastHeard && <span>· {ago(b.lastHeard, now)}</span>}</>} onClose={onClose}>
+    <Sheet title={`${st?.name ?? ""} ${a.callsign}`} sub={<><StatePill state={b.state} status={b.status} /> {b.lastHeard && <span>· {ago(b.lastHeard, now)}</span>}</>} onClose={onClose}>
       <dl className="kv">
         <dt>Station</dt><dd><button className="linkbtn" onClick={() => nav.station(a.stationId)}>{st?.name}</button></dd>
         <dt>Selcall ID</dt><dd><code>{a.selcallId || "unknown"}</code>{!a.selcallVerified && <span className="tag">placeholder</span>}</dd>

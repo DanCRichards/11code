@@ -6,7 +6,7 @@ import { validateCodebook } from "../core/validate";
 import { resetLocalCodebook, saveCodebook, startSource } from "../sources/controller";
 import { BUNDLED, store, useStore } from "../store";
 import { ago, Sheet, useBoard } from "./common";
-import { askNotifications, chime, unlockAlertAudio } from "./alerts";
+import { askNotifications, chime, testSound, unlockAlertAudio } from "./alerts";
 import { DemoRadio } from "./DemoRadio";
 import { InputPanel } from "./Input";
 import { ImportPanel } from "./Player";
@@ -658,8 +658,8 @@ function AlertsPanel() {
           store.alertSettings({ notify: e.target.checked });
         }} /> Also show a notification when the page is in the background</label>
         <div className="row">
-          <button className="btn" onClick={() => { unlockAlertAudio(); chime("priority"); }}>Test priority chime</button>
-          <button className="btn" onClick={() => { unlockAlertAudio(); chime("turnout"); }}>Test turnout chime</button>
+          <button className="btn" onClick={() => testSound("priority-chime", () => chime("priority"))}>Test priority chime</button>
+          <button className="btn" onClick={() => testSound("turnout-chime", () => chime("turnout"))}>Test turnout chime</button>
         </div>
         {note && <p className="error">{note}</p>}
         {perm === "unsupported" && <p className="note">This browser doesn't support notifications here. On iPhone, add the site to your home screen first.</p>}
@@ -680,7 +680,7 @@ function AlertsPanel() {
         )}
         <div className="row">
           <button className="btn primary" onClick={() => setPicking(true)}>{alarm.stations.length + alarm.appliances.length ? "Change stations and trucks" : "Choose stations and trucks"}</button>
-          <button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })); }}>Test the alarm</button>
+          <button className="btn" onClick={() => testSound("turnout-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })))}>Test the alarm</button>
         </div>
         <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Sound the alarm</label>
         <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until it clears (up to 3 minutes)</label>
@@ -712,7 +712,7 @@ function AlertsPanel() {
           </>
         )}
         {pa.scope !== "off" && <AutoClear value={pa.autoClear} onChange={(v) => store.priorityAlarm({ autoClear: v })} label="Priority alarm goes away" />}
-        <div className="row"><button className="btn" onClick={() => { unlockAlertAudio(); window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })); }}>Test the priority alarm</button></div>
+        <div className="row"><button className="btn" onClick={() => testSound("priority-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })))}>Test the priority alarm</button></div>
         {pickingPrio && (
           <Sheet title="Priority alarm" sub="Whole stations count every truck there" onClose={() => setPickingPrio(false)}>
             <UnitPicker stationMode="toggle" appliances={pa.appliances} stations={pa.stations} onChange={(n) => store.priorityAlarm(n)} />

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { isCommitted, nzDay, stateText } from "../core/derive";
+import { boardText, isCommitted, nzDay, stateText } from "../core/derive";
 import { groupJobs, type Job } from "../core/incidents";
 import { applianceName, type Index } from "../core/interpret";
 import type { ApplianceState, Interpreted } from "../core/types";
@@ -105,10 +105,10 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
       </div>
       <div className="job-units">
         {job.applianceIds.map((id) => {
-          const a = ix.appliance.get(id), st = board.appliances.get(id)?.state ?? "not-heard";
+          const a = ix.appliance.get(id), ab = board.appliances.get(id), st = ab?.state ?? "not-heard";
           return a && (
             <button key={id} className="chipunit" style={{ borderColor: stateVar(st) }} onClick={() => nav.appliance(id)}>
-              <b>{a.callsign}</b><span style={{ color: stateVar(st) }}>{stateText(st)}</span>
+              <b>{a.callsign}</b><span style={{ color: stateVar(st) }}>{ab ? boardText(ab) : stateText(st)}</span>
             </button>
           );
         })}

@@ -130,13 +130,30 @@ def main():
             {"final": "B", "label": "Priority call", "priority": True, "verified": False},
         ],
         # Long appliance messages: HEADER-<suffix>. Real suffix meanings are
-        # unknown; the K-code entries are the demo's own encoding.
+        # unknown; the suffixes here are the demo's own encoding ("F" + K
+        # number, padded with A0C2). K-code meanings are from FENZ's K code
+        # sheet (see CLAUDE.md). K55-K99 are sent by the first truck to arrive.
         "statusCodes": [
-            {"suffix": "F1A0C2", "kCode": "K1", "label": "Responding", "state": "responding", "demo": True},
-            {"suffix": "F2A0C2", "kCode": "K2", "label": "At incident", "state": "at-incident", "demo": True},
-            {"suffix": "F3A0C2", "kCode": "K3", "label": "Out of area", "state": "out-of-area", "demo": True},
-            {"suffix": "F4A0C2", "kCode": "K4", "label": "Available on radio", "state": "available-radio", "demo": True},
-            {"suffix": "F7A0C2", "kCode": "K7", "label": "On station", "state": "on-station", "demo": True},
+            {"suffix": s, "kCode": k, "label": label, "state": state, "demo": True, **extra}
+            for s, k, label, state, extra in [
+                ("F0A0C2", "K0", "Not available", "status-unknown", {}),
+                ("F1A0C2", "K1", "Responding", "responding", {}),
+                ("F2A0C2", "K2", "At incident", "at-incident", {}),
+                ("F3A0C2", "K3", "Out of area", "out-of-area", {}),
+                ("F4A0C2", "K4", "Available on radio", "available-radio", {}),
+                ("F5A0C2", "K5", "Available at incident", "at-incident", {}),
+                ("F6A0C2", "K6", "On pager", "available-radio", {}),
+                ("F7A0C2", "K7", "On station", "on-station", {}),
+                ("F9A0C2", "K9", "Off radio", "status-unknown", {}),
+                ("F10A0C", "K10", "Recommissioning", "status-unknown", {}),
+                ("FBA0C2", "KE", "Unable to proceed", "status-unknown", {}),
+                ("F11A0C", "K11", "Service required", "at-incident", {}),
+                ("F55A0C", "K55", "Special service", "at-incident", {"arrival": True}),
+                ("F66A0C", "K66", "Non-property fire", "at-incident", {"arrival": True}),
+                ("F77A0C", "K77", "Nothing showing", "at-incident", {"arrival": True}),
+                ("F88A0C", "K88", "Small property fire", "at-incident", {"arrival": True}),
+                ("F99A0C", "K99", "Well-involved fire", "at-incident", {"arrival": True}),
+            ]
         ],
     }
     out = ROOT / "data/codebook.json"

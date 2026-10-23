@@ -10,6 +10,9 @@ const DEFAULT_SUFFIX: Partial<Record<ApplianceState, string>> = {
   responding: "F1A0C2", "at-incident": "F2A0C2", "out-of-area": "F3A0C2", "available-radio": "F4A0C2", "on-station": "F7A0C2",
 };
 
+// What the first truck finds: mostly nothing showing, now and then a working fire.
+const ARRIVAL = ["K77", "K77", "K77", "K77", "K55", "K55", "K66", "K88", "K99"];
+
 const U = (a: number, b: number) => a + Math.random() * (b - a);
 const pick = <T,>(xs: T[]): T => xs[Math.floor(Math.random() * xs.length)];
 let seq = 0;
@@ -108,7 +111,7 @@ export class DemoSource {
     if (whole && stationCode) {
       const apps = free(station.id);
       this.at(0, (w) => this.send(stationCode.code, w));
-      apps.forEach((a, i) => { this.busy.add(a.id); this.playJob(a, U(30, 90) + i * 15); });
+      apps.forEach((a, i) => { this.busy.add(a.id); this.playJob(a, U(30, 90) + i * 15, i === 0); });
       return true;
     }
     const apps = free(station.id).slice(0, Math.random() < 0.3 ? 2 : 1);
@@ -117,13 +120,14 @@ export class DemoSource {
       const own = cb.turnoutCodes.filter((c) => c.applianceId === a.id);
       const code = own.length && !(stationCode && Math.random() < 0.15) ? pick(own).code : stationCode?.code;
       if (code) this.at(i * U(5, 40), (w) => this.send(code, w));
-      this.playJob(a, U(30, 90) + i * 20);
+      this.playJob(a, U(30, 90) + i * 20, i === 0);
     }
     if (Math.random() < 0.08) this.at(U(20, 600), (w) => this.send(pick(REAL_UNKNOWNS), w));
     return true;
   }
 
-  private playJob(a: Appliance, t: number) {
+  /** `first`: this truck gets there first and sends the arrival K code (K55-K99). */
+  private playJob(a: Appliance, t: number, first: boolean) {
     const status = (state: ApplianceState) => {
       const suffix = this.cb.statusCodes.find((s) => s.state === state)?.suffix ?? DEFAULT_SUFFIX[state];
       return suffix ? `${a.selcallId}-${suffix}` : null;
@@ -132,9 +136,16 @@ export class DemoSource {
       const code = status(state);
       if (code) this.at(delay, (w) => this.send(code, w));
     };
+    const sayK = (delay: number, kCode: string) => {
+      const suffix = this.cb.statusCodes.find((s) => s.kCode === kCode)?.suffix;
+      if (suffix) this.at(delay, (w) => this.send(`${a.selcallId}-${suffix}`, w));
+      return !!suffix;
+    };
     say(t, "responding");
     const scene = t + U(180, 540);
-    say(scene, Math.random() < 0.06 ? "out-of-area" : "at-incident");
+    if (Math.random() < 0.06) say(scene, "out-of-area");
+    else if (!(first && sayK(scene, pick(ARRIVAL)))) say(scene, "at-incident");
+    if (Math.random() < 0.25) sayK(scene + U(120, 500), "K5");
     if (Math.random() < 0.12) {
       const final = this.cb.callTypes.find((c) => c.priority)?.final ?? "B";
       this.at(scene + U(30, 240), (w) => this.send(`${a.selcallId}${final}`, w));

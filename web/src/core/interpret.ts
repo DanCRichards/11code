@@ -8,7 +8,7 @@ export interface Index {
   appliance: Map<string, Appliance>;
   bySelcall: Map<string, Appliance>;
   turnout: Map<string, { stationId: string; applianceId: string | null }>;
-  status: Map<string, { label: string; state: ApplianceState; kCode: string }>;
+  status: Map<string, { label: string; state: ApplianceState; kCode: string; arrival?: boolean }>;
   callType: Map<string, { label: string; priority: boolean }>;
 }
 
@@ -57,7 +57,8 @@ export function interpret(call: Call, ix: Index): Interpreted {
                label: "Unknown status", title: name };
     }
     return { call, type: "status", stationId: a.stationId, applianceId: a.id, state: st.state,
-             label: st.kCode ? `${st.kCode} ${st.label}` : st.label, title: name };
+             label: st.kCode ? `${st.kCode} ${st.label}` : st.label, title: name,
+             status: { kCode: st.kCode, label: st.label, arrival: st.arrival } };
   }
   const ct = ix.callType.get(call.code[5]);
   if (ct?.priority) {

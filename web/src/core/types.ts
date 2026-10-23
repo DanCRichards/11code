@@ -41,6 +41,7 @@ export interface StatusCode {
   label: string;
   state: ApplianceState;
   demo?: boolean;
+  arrival?: boolean; // K55-K99: the first truck to arrive says what it found
 }
 
 export interface Codebook {
@@ -79,6 +80,7 @@ export interface Interpreted {
   state?: ApplianceState;
   label: string; // short, e.g. "Responding"
   title: string; // e.g. "Grey Lynn 261"
+  status?: { kCode: string; label: string; arrival?: boolean }; // status messages: the K code heard
 }
 
 export const MIN_CONFIDENCE = 0.5;

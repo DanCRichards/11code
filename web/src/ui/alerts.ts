@@ -14,6 +14,14 @@ const SOUND_URLS: Record<Sound, string> = {
   "turnout-alarm": turnoutAlarmUrl, "turnout-chime": turnoutChimeUrl,
 };
 const buffers = new Map<Sound, Promise<AudioBuffer | null>>();
+// Everything currently sounding, so a new chime or Acknowledge can cut it off.
+const playing = new Set<AudioScheduledSourceNode>();
+let chimeGen = 0;
+
+function track(node: AudioScheduledSourceNode) {
+  playing.add(node);
+  node.onended = () => playing.delete(node);
+}
 
 function load(name: Sound): Promise<AudioBuffer | null> {
   let p = buffers.get(name);
@@ -43,15 +51,50 @@ async function play(name: Sound, loop: boolean): Promise<(() => void) | null> {
   src.loop = loop;
   g.gain.value = 0.9;
   src.connect(g).connect(ctx.destination);
+  track(src);
   src.start();
-  return () => { try { src.stop(); } catch { /* already stopped */ } };
+  return () => { try { src.stop(); } catch { /* already stopped */ } playing.delete(src); };
 }
 
 /** Short alert: the "text alert" sounds, or a synthesised two-tone if they can't load. */
 export function chime(kind: "priority" | "turnout") {
+  stopChimes();
+  const gen = chimeGen;
   void play(kind === "priority" ? "priority-chime" : "turnout-chime", false).then((stop) => {
+    if (gen !== chimeGen) { stop?.(); return; } // another sound took over while loading
     if (!stop) synthChime(kind);
+    else chimeStop = stop;
   });
+}
+let chimeStop: (() => void) | null = null;
+
+function stopChimes() {
+  chimeGen++;
+  chimeStop?.();
+  chimeStop = null;
+  synthNodes.forEach((n) => { try { n.stop(); } catch { /* not started */ } });
+  synthNodes.clear();
+}
+const synthNodes = new Set<OscillatorNode>();
+
+/** Silence every alert sound: chimes, alarm clips and synthesised tones. */
+export function stopAlertSounds() {
+  stopSiren();
+  stopChimes();
+  playing.forEach((n) => { try { n.stop(); } catch { /* already stopped */ } });
+  playing.clear();
+}
+
+/** For test buttons: ignore quick repeat taps of the same button, and cut off
+ *  whatever is playing before starting, so tests never sound over each other. */
+let lastTest = { key: "", at: 0 };
+export function testSound(key: string, play: () => void) {
+  const now = Date.now();
+  if (key === lastTest.key && now - lastTest.at < 700) return;
+  lastTest = { key, at: now };
+  unlockAlertAudio();
+  stopAlertSounds();
+  play();
 }
 
 /** Two-tone alert: hi-lo three times for priority, one soft pair otherwise. */
@@ -70,6 +113,8 @@ function synthChime(kind: "priority" | "turnout") {
       g.gain.setValueAtTime(gain, t + 0.16);
       g.gain.linearRampToValueAtTime(0, t + 0.2);
       o.connect(g).connect(ctx!.destination);
+      synthNodes.add(o);
+      o.onended = () => synthNodes.delete(o);
       o.start(t);
       o.stop(t + 0.22);
     });
@@ -163,6 +208,7 @@ function synthSiren(repeat: boolean, kind: "turnout" | "priority") {
       g.gain.setValueAtTime(0.16, t + step - 0.04);
       g.gain.linearRampToValueAtTime(0, t + step - 0.01);
       o.connect(g).connect(ctx.destination);
+      track(o);
       o.start(t);
       o.stop(t + step);
     }

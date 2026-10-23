@@ -3,7 +3,7 @@ import type { Index } from "../core/interpret";
 import type { Interpreted } from "../core/types";
 import { store, type AlarmSettings, type PriorityAlarmSettings } from "../store";
 import { clockTime } from "./common";
-import { siren, stopSiren } from "./alerts";
+import { siren, stopAlertSounds, stopSiren } from "./alerts";
 
 export type AlarmKind = "turnout" | "priority";
 
@@ -83,7 +83,8 @@ export function useAlarms(events: Interpreted[], ix: Index) {
   }, [hits.length]);
   return {
     hits,
-    ack: () => setHits([]),
+    // Acknowledge silences everything: the alarm, any chime, and the alert's radio un-mute.
+    ack: () => { stopAlertSounds(); store.endUnmute(); setHits([]); },
     test: (kind: AlarmKind) => { store.alertUnmute(); setHits([testHit(kind)]); },
   };
 }

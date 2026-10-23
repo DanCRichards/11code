@@ -61,7 +61,7 @@ export function AppliancesView({ nav, filter: initial }: { nav: Nav; filter?: st
                 <button className="item" onClick={() => nav.appliance(a.id)}>
                   <span className="callsign" style={{ color: b.state === "not-heard" ? "var(--muted)" : stateVar(b.state) }}>{a.callsign}</span>
                   <span className="what"><b>{station.name}</b><span>{b.lastEvent ? `${b.lastEvent.label} · ${ago(b.lastHeard, now)}` : "Not heard yet"}{b.priorityAt ? " · priority call" : ""}</span></span>
-                  <StatePill state={b.state} />
+                  <StatePill state={b.state} status={b.status} />
                 </button>
               </li>
             ))}

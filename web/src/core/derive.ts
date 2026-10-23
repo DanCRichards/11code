@@ -6,6 +6,7 @@ export interface ApplianceBoard {
   lastHeard?: number;
   lastEvent?: Interpreted;
   priorityAt?: number;
+  status?: Interpreted["status"]; // the K code behind the current state, if a status message set it
   history: Interpreted[]; // newest first
 }
 
@@ -77,7 +78,7 @@ export function deriveBoard(events: Interpreted[], ix: Index, now: number, dismi
       ab.history.unshift(ev);
       ab.lastHeard = t;
       ab.lastEvent = ev;
-      if (ev.state) ab.state = ev.state;
+      if (ev.state) { ab.state = ev.state; ab.status = ev.status; }
     }
     if (ev.type === "turnout" || ev.type === "station-turnout") {
       turnouts.unshift(ev);
@@ -132,5 +133,9 @@ export const K_CODE: Partial<Record<ApplianceState, string>> = {
   responding: "K1", "at-incident": "K2", "out-of-area": "K3", "available-radio": "K4", "on-station": "K7",
 };
 
-/** A truck's status with its K code, e.g. "K1 Responding". */
+/** A state with its usual K code, e.g. "K1 Responding". */
 export const stateText = (s: ApplianceState) => (K_CODE[s] ? `${K_CODE[s]} ${STATE_LABEL[s]}` : STATE_LABEL[s]);
+
+/** A truck's status as heard, e.g. "K99 Well-involved fire"; falls back to its state. */
+export const boardText = (ab: Pick<ApplianceBoard, "state" | "status">) =>
+  ab.status?.kCode ? `${ab.status.kCode} ${ab.status.label}` : stateText(ab.state);

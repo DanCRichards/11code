@@ -217,6 +217,11 @@ export const store = {
     clearTimeout(unmuteTimer);
     unmuteTimer = setTimeout(() => store.set({ unmutedUntil: undefined }), secs * 1000 + 50);
   },
+  /** Acknowledged: go back to muted now rather than waiting out the un-mute. */
+  endUnmute() {
+    clearTimeout(unmuteTimer);
+    if (state.unmutedUntil) store.set({ unmutedUntil: undefined });
+  },
   alarm(patch: Partial<AlarmSettings>) {
     store.settings({ alarm: { ...state.settings.alarm, ...patch } });
   },
