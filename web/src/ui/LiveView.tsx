@@ -138,7 +138,7 @@ function StatusBoard({ ix, board, now, nav }: { ix: Index; board: ReturnType<typ
             {g.units.map(([id, b]) => {
               const a = ix.appliance.get(id)!;
               return (
-                <button key={id} className="sb-unit" onClick={() => nav.appliance(id)} title={`${ix.station.get(a.stationId)?.name} ${a.callsign}`}>
+                <button key={id} className="sb-unit" style={{ ["--c" as string]: stateVar(g.state) }} onClick={() => nav.appliance(id)} title={`${ix.station.get(a.stationId)?.name} ${a.callsign}`}>
                   <b>{a.callsign}</b>
                   <span>{ix.station.get(a.stationId)?.name}</span>
                   <span className="mono">{ago(b.lastHeard, now).replace(" ago", "")}{b.priorityAt && now - b.priorityAt < 30 * 60_000 ? " · PRIORITY" : ""}</span>

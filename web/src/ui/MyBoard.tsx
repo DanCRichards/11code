@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { boardText, stateText, type Board } from "../core/derive";
+import { boardParts, boardText, stateText, type Board } from "../core/derive";
 import type { Index } from "../core/interpret";
 import type { ApplianceState } from "../core/types";
 import { store, useStore } from "../store";
@@ -54,7 +54,7 @@ function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
               style={{ ["--c" as string]: stateVar(ab.state) }} onClick={() => onTruck(id)}
               aria-label={`${a.callsign} ${boardText(ab)}`}>
               <b>{a.callsign}</b>
-              <span className="mb-state">{turnedOut ? "Turnout" : priority ? "Priority call" : boardText(ab)}</span>
+              <StateLine parts={turnedOut ? { code: "T/O", label: "Turnout" } : priority ? { code: "PRI", label: "Priority call" } : boardParts(ab)} />
               <span className="mb-ago">{ab.lastHeard ? ago(ab.lastHeard, now).replace(" ago", "") : "—"}</span>
             </button>
           );
@@ -62,6 +62,11 @@ function StationCard({ stationId, ids, flashMs, onTruck, onStation, style }: {
       </div>
     </section>
   );
+}
+
+/** "[K99] Well-involved fire": the chip carries the status colour (from the cell's --c). */
+function StateLine({ parts }: { parts: { code: string; label: string } }) {
+  return <span className="mb-state"><i className="kchip">{parts.code}</i><span>{parts.label}</span></span>;
 }
 
 /** Your boards: each a set of trucks grouped by station, coloured by status. */

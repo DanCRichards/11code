@@ -136,6 +136,13 @@ export const K_CODE: Partial<Record<ApplianceState, string>> = {
 /** A state with its usual K code, e.g. "K1 Responding". */
 export const stateText = (s: ApplianceState) => (K_CODE[s] ? `${K_CODE[s]} ${STATE_LABEL[s]}` : STATE_LABEL[s]);
 
+/** A truck's status split for display: the code for its chip ("K99", "T/O") and the words. */
+export function boardParts(ab: Pick<ApplianceBoard, "state" | "status">): { code: string; label: string } {
+  if (ab.status?.kCode) return { code: ab.status.kCode, label: ab.status.label };
+  const code = K_CODE[ab.state] ?? (ab.state === "turned-out" ? "T/O" : ab.state === "not-heard" ? "··" : "?");
+  return { code, label: STATE_LABEL[ab.state] };
+}
+
 /** A truck's status as heard, e.g. "K99 Well-involved fire"; falls back to its state. */
 export const boardText = (ab: Pick<ApplianceBoard, "state" | "status">) =>
   ab.status?.kCode ? `${ab.status.kCode} ${ab.status.label}` : stateText(ab.state);
