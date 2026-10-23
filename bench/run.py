@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 
 from bench.legacy import legacy_decode
-from bench.synth import make_set
+from bench.synth import RF_FS, make_sdr_set
 from selcall.decode import DecoderConfig, decode_signal, load_wav
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -99,16 +99,13 @@ def real_sets():
 
 
 def synth_sets(quick):
-    snrs = (20, 6) if quick else (30, 15, 8, 3)
-    # (rt60 s, direct-to-reverberant dB): dry, mild room, echoey room, very wet
-    rooms = ((0.0, 0), (0.3, 0)) if quick else ((0.0, 0), (0.25, 6), (0.3, 0), (0.4, -3))
+    """Bursts over a simulated narrowband FM link (SDR input), from a strong
+    signal down past the FM threshold, with open-squelch noise and voice."""
+    cnrs = (10, 5, 3) if quick else (20, 10, 7, 5, 4, 3, 2)
     out = []
-    for i, snr in enumerate(snrs):
-        for j, (rt, drr) in enumerate(rooms):
-            x, labs = make_set(n_bursts=30, snr_db=snr, rt60=rt, drr_db=drr,
-                               seed=100 + 10 * i + j)
-            out.append((f"snr{snr} rt{rt} drr{drr}", x, 44100,
-                        [(t, c, None) for t, c in labs]))
+    for i, cnr in enumerate(cnrs):
+        x, labs = make_sdr_set(n_bursts=40, cnr_db=cnr, seed=200 + i)
+        out.append((f"cnr{cnr}", x, RF_FS, [(t, c, None) for t, c in labs]))
     return out
 
 

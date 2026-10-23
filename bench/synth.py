@@ -85,3 +85,84 @@ def make_set(n_bursts=40, fs=44100, snr_db=20.0, rt60=0.0, drr_db=0.0, jitter=0.
             x[c:c + 20] += rng.uniform(-3, 3) * np.hanning(20)
     x /= np.max(np.abs(x)) * 1.05
     return x, labels
+
+
+# --- FM radio link (what an SDR actually hears) -----------------------------
+
+RF_FS = 48000
+DEVIATION_HZ = 2000     # tone deviation on a 12.5 kHz narrowband channel
+EMPH_TAU = 530e-6       # 6 dB/octave land-mobile pre-/de-emphasis
+
+
+def _preemphasis(x, fs):
+    # H(z) ~ (1 + tau*s), normalised so ~1 kHz is roughly unity gain.
+    a = np.exp(-1 / (EMPH_TAU * fs))
+    y = signal.lfilter([1, -a], [1], x)
+    return y / np.abs(1 - a * np.exp(-2j * np.pi * 1000 / fs))
+
+
+def _deemphasis(x, fs):
+    a = np.exp(-1 / (EMPH_TAU * fs))
+    y = signal.lfilter([1 - a], [1, -a], x)
+    return y / np.abs((1 - a) / (1 - a * np.exp(-2j * np.pi * 1000 / fs)))
+
+
+def fake_voice(n, fs, rng):
+    """Vowel-like harmonic stacks with gliding pitch and syllable envelopes."""
+    t = np.arange(n) / fs
+    f0 = rng.uniform(90, 220) * (1 + 0.15 * np.sin(2 * np.pi * rng.uniform(0.5, 3) * t))
+    ph = 2 * np.pi * np.cumsum(f0) / fs
+    v = sum(np.sin(h * ph) / h for h in range(1, 25))
+    b, a = signal.butter(2, [rng.uniform(300, 700), rng.uniform(1500, 2800)], "bandpass", fs=fs)
+    v = signal.lfilter(b, a, v)
+    env = np.clip(np.sin(2 * np.pi * rng.uniform(3, 6) * t), 0, None) ** 0.5
+    return v * env / (np.std(v) + 1e-9) * 0.5
+
+
+def fm_link(audio, keyed, cnr_db, rng, fs=RF_FS):
+    """audio: baseband message (|peak| ~ 1). keyed: bool mask, carrier present.
+    Returns demodulated, de-emphasised audio at `fs`."""
+    m = _preemphasis(audio, fs)
+    m = np.clip(m, -1.5, 1.5)  # transmitter deviation limiter
+    phase = 2 * np.pi * DEVIATION_HZ * np.cumsum(m) / fs
+    carrier_offset = rng.uniform(-500, 500)  # SDR tuning error
+    z = np.exp(1j * (phase + 2 * np.pi * carrier_offset * np.arange(len(m)) / fs)) * keyed
+    # Noise power set relative to the carrier within the 12.5 kHz channel.
+    noise_bw_frac = 12500 / fs
+    sigma = np.sqrt(10 ** (-cnr_db / 10) / noise_bw_frac / 2)
+    z = z + sigma * (rng.standard_normal(len(z)) + 1j * rng.standard_normal(len(z)))
+    sos = signal.butter(6, 6250, fs=fs, output="sos")
+    z = signal.sosfilt(sos, z)
+    disc = np.angle(z[1:] * np.conj(z[:-1])) * fs / (2 * np.pi * DEVIATION_HZ)
+    out = _deemphasis(np.r_[0, disc], fs)
+    sos = signal.butter(6, [250, 3000], "bandpass", fs=fs, output="sos")
+    return signal.sosfilt(sos, out)
+
+
+def make_sdr_set(n_bursts=30, cnr_db=15.0, voice=True, max_offset_hz=8.0,
+                 jitter=0.03, seed=0):
+    """Bursts sent over a simulated narrowband FM link. Carrier is keyed only
+    around each burst (and voice), so the gaps are open-squelch noise."""
+    rng = np.random.default_rng(seed)
+    fs = RF_FS
+    spacing = 1.2
+    n = int((n_bursts * spacing + 1.0) * fs)
+    audio = np.zeros(n)
+    keyed = np.zeros(n)
+    labels = []
+    for i in range(n_bursts):
+        code = random_code(rng)
+        b = burst(code, fs, rng, jitter=jitter,
+                  freq_offset=rng.uniform(-max_offset_hz, max_offset_hz), twist_db=1.0)
+        t0 = 0.5 + i * spacing + rng.uniform(0, 0.1)
+        a = int(t0 * fs)
+        audio[a:a + len(b)] += 0.7 * b
+        keyed[a - int(0.15 * fs):a + len(b) + int(0.1 * fs)] = 1
+        labels.append((t0, code))
+        if voice and rng.random() < 0.6:  # a voice transmission in the gap
+            va = a + len(b) + int(0.2 * fs)
+            vn = int(rng.uniform(0.4, 0.7) * fs)
+            audio[va:va + vn] += fake_voice(vn, fs, rng)
+            keyed[va - int(0.05 * fs):va + vn + int(0.05 * fs)] = 1
+    y = fm_link(audio, keyed, cnr_db, rng, fs)
+    return y / (np.max(np.abs(y)) * 1.05), labels
