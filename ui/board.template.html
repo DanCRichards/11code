@@ -1,0 +1,645 @@
+<title>Auckland Turnout Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dispatch board. Chart-style harbour map on top (left on wide
+   screens), radio controls + decoded-call readout + log beside it. */
+:root {
+  --bg: #eaeff1; --panel: #ffffff; --ink: #14212a; --muted: #5a6972; --line: #d6dee2;
+  --sea: #cfdfe7; --land: #fafaf6; --coast: #8ea6b2; --water-label: #6f8b99;
+  --alarm: #c8241c; --hivis: #f4c300; --respond: #d86f00; --scene: #b8460f;
+  --return: #2b68ad; --ok: #2b8549; --flag: #7d878c; --on-alarm: #ffffff;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1418; --panel: #141e24; --ink: #e3eaee; --muted: #93a2aa; --line: #24323a;
+  --sea: #0a1317; --land: #1a252b; --coast: #3a4c55; --water-label: #4f6a77;
+  --alarm: #ff5a4e; --hivis: #ffd21c; --respond: #ff9a33; --scene: #ff7a45;
+  --return: #5ea4f2; --ok: #52c47d; --flag: #8d999f; --on-alarm: #1d0604; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d1418; --panel: #141e24; --ink: #e3eaee; --muted: #93a2aa; --line: #24323a;
+  --sea: #0a1317; --land: #1a252b; --coast: #3a4c55; --water-label: #4f6a77;
+  --alarm: #ff5a4e; --hivis: #ffd21c; --respond: #ff9a33; --scene: #ff7a45;
+  --return: #5ea4f2; --ok: #52c47d; --flag: #8d999f; --on-alarm: #1d0604; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: var(--body); font-size: 14px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px 28px; }
+.app { max-width: 1240px; margin: 0 auto; display: grid; gap: 12px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--return); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1; margin: 0;
+  letter-spacing: 0.01em; text-transform: uppercase; text-wrap: balance; }
+.chip { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
+.chip.sim { color: var(--respond); }
+.clock { font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.clock b { color: var(--ink); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.stat { background: var(--panel); padding: 8px 12px; display: grid; gap: 1px; }
+.stat span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.stat b { font-family: var(--display); font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat.out b { color: var(--alarm); }
+
+.grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) {
+  .grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+  .mapcard { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+}
+
+.mapcard { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.mapbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px;
+  border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.mapbar .hint { font-size: 12px; color: var(--muted); }
+.mapwrap { position: relative; aspect-ratio: 1 / 1.02; max-width: 100%; background: var(--sea); }
+@media (min-width: 900px) { .mapwrap { aspect-ratio: auto; height: min(78vh, 760px); } }
+#map { display: block; width: 100%; height: 100%; touch-action: manipulation; }
+#map .landmass { fill: var(--land); stroke: var(--coast); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+#map .water { fill: var(--water-label); font-family: var(--body); font-style: italic; letter-spacing: 0.08em; }
+#map .st circle.dot { fill: var(--panel); stroke: var(--ink); stroke-width: 2; }
+#map .st.busy circle.dot { fill: var(--hivis); }
+#map .st text.lbl { font-family: var(--display); font-weight: 600; font-size: 13px; fill: var(--ink);
+  paint-order: stroke; stroke: var(--land); stroke-width: 3.5px; stroke-linejoin: round; letter-spacing: 0.02em; }
+#map .st.sel text.lbl { fill: var(--return); }
+#map .st .hit { fill: transparent; cursor: pointer; }
+#map .st .ring { fill: none; stroke: var(--alarm); stroke-width: 2.5; opacity: 0; }
+#map .st.alerted .ring { animation: ring 1.4s ease-out infinite; }
+@keyframes ring { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
+#map .st .ring, #map .inc .pulse { transform-box: fill-box; transform-origin: center; }
+#map .inc .core { fill: var(--alarm); stroke: var(--land); stroke-width: 2; }
+#map .inc .pulse { fill: var(--alarm); opacity: .25; animation: pulse 1.6s ease-in-out infinite; }
+#map .inc.clearing { opacity: .35; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.7); } }
+#map .route { stroke: var(--respond); stroke-width: 2; stroke-dasharray: 5 5; fill: none; vector-effect: non-scaling-stroke; }
+#map .route.back { stroke: var(--return); }
+#map .truck rect { fill: var(--hivis); stroke: var(--ink); stroke-width: 1.5; }
+#map .truck text { font-family: var(--mono); font-weight: 600; font-size: 11px; fill: #14212a; }
+#map .truck circle { stroke: var(--ink); stroke-width: 1; }
+@media (prefers-reduced-motion: reduce) { #map .st.alerted .ring, #map .inc .pulse { animation: none; opacity: .5; } }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 8px 10px; border-top: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+
+.side { display: grid; gap: 12px; min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 10px; min-width: 0; }
+.panel h2 { font-family: var(--display); font-size: 17px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.panel h2 small { font-family: var(--body); font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
+
+.controls { display: grid; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 9px 12px; cursor: pointer;
+  font-weight: 500; min-height: 40px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--alarm); border-color: var(--alarm); color: var(--on-alarm); font-family: var(--display);
+  font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; flex: 1 1 160px; }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: var(--panel); padding: 8px 4px; cursor: pointer; font-size: 13px; border-left: 1px solid var(--line); min-height: 38px; }
+.seg button:first-child { border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); font-weight: 600; }
+.label { font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.label b { font-family: var(--mono); font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
+.viewseg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.viewseg button { border: 0; background: var(--panel); padding: 5px 10px; cursor: pointer; font-size: 12px; }
+.viewseg button + button { border-left: 1px solid var(--line); }
+.viewseg button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+
+.call { display: grid; gap: 8px; }
+.callhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.callcode { font-family: var(--mono); font-size: 22px; font-weight: 600; letter-spacing: 0.06em; word-break: break-all; }
+.callwhat { font-weight: 600; }
+.callsub { font-size: 12px; color: var(--muted); }
+.strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+.tgroup { display: grid; gap: 3px; flex: 0 0 auto; }
+.tgroup > div { display: flex; gap: 3px; }
+.tgroup > span { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.slot { flex: 0 0 auto; min-width: 30px; border-radius: 4px; padding: 4px 3px 3px; text-align: center; color: #fff;
+  display: grid; gap: 1px; position: relative; }
+.slot b { font-family: var(--mono); font-size: 15px; line-height: 1.1; }
+.slot span { font-family: var(--mono); font-size: 9px; opacity: .85; font-variant-numeric: tabular-nums; }
+.slot.sep { min-width: 44px; }
+.slot.miss { background: var(--flag) !important; }
+.meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; background: var(--ok); }
+.meter.low i { background: var(--flag); }
+.empty { color: var(--muted); font-size: 13px; }
+
+.stationcard { display: grid; gap: 8px; }
+.applist { display: grid; gap: 6px; }
+.app-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
+.app-row code { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.tag { font-size: 10px; color: var(--muted); border: 1px dashed var(--line); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+
+.pill { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; color: #fff; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: 0.04em; }
+.p-turnout { background: var(--alarm); } .p-responding { background: var(--respond); }
+.p-scene { background: var(--scene); } .p-returning { background: var(--return); }
+.p-station, .p-available { background: var(--ok); } .p-flag { background: var(--flag); }
+
+.log { list-style: none; margin: 0; padding: 0; display: grid; max-height: 420px; overflow-y: auto; }
+.log li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 10px; padding: 8px 2px; border-top: 1px solid var(--line); align-items: center; }
+.log li:first-child { border-top: 0; }
+.log time { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.log .what { min-width: 0; display: grid; }
+.log .what b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log .what code { font-family: var(--mono); font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.log li.new { animation: flash 1.2s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--hivis) 35%, transparent); } to { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .log li.new { animation: none; } }
+
+.note { font-size: 12px; color: var(--muted); max-width: 72ch; }
+.note p { margin: 0 0 6px; }
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Auckland Turnout Board</h1>
+      <span class="chip sim">Simulated radio</span>
+    </div>
+    <div class="clock" aria-label="Auckland time"><b id="clock">--:--:--</b> NZT</div>
+  </header>
+
+  <section class="stats" aria-label="Summary">
+    <div class="stat out"><span>Out now</span><b id="s-out">0</b></div>
+    <div class="stat"><span>Calls decoded</span><b id="s-ok">0</b></div>
+    <div class="stat"><span>Unreadable</span><b id="s-flag">0</b></div>
+  </section>
+
+  <main class="grid">
+    <section class="mapcard" aria-label="Map">
+      <div class="mapbar">
+        <div class="viewseg" role="group" aria-label="Map view">
+          <button id="v-city" aria-pressed="true">Central</button>
+          <button id="v-all" aria-pressed="false">Isthmus + Shore</button>
+        </div>
+        <span class="hint">Tap a station for details</span>
+      </div>
+      <div class="mapwrap" id="mapwrap">
+        <svg id="map" viewBox="0 0 1000 1111" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Map of central Auckland fire stations">
+          <rect x="-2000" y="-2000" width="5000" height="5000" fill="var(--sea)"/>
+          <path class="landmass" id="land" d=""/>
+          <g id="waterlabels"></g>
+          <g id="routes"></g>
+          <g id="incidents"></g>
+          <g id="stations"></g>
+          <g id="trucks"></g>
+        </svg>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--alarm)"></i>Incident</span>
+        <span><i style="background:var(--hivis);border:1px solid var(--ink)"></i>Appliance</span>
+        <span><i style="background:var(--respond)"></i>Responding</span>
+        <span><i style="background:var(--scene)"></i>At incident</span>
+        <span><i style="background:var(--return)"></i>Returning</span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel controls" aria-label="Radio controls">
+        <div class="row">
+          <button class="btn primary" id="turnout">Turn out a station</button>
+          <button class="btn" id="auto" aria-pressed="false">Auto traffic</button>
+          <button class="btn" id="sound" aria-pressed="false">Sound</button>
+        </div>
+        <div class="label"><span>Signal strength</span><b id="snr-read">Fair · 8 dB</b></div>
+        <div class="seg" role="group" aria-label="Signal strength" id="signal">
+          <button data-snr="25" aria-pressed="false">Strong</button>
+          <button data-snr="8" aria-pressed="true">Fair</button>
+          <button data-snr="2" aria-pressed="false">Weak</button>
+          <button data-snr="-3" aria-pressed="false">Very weak</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-label="Last decoded call">
+        <h2>Last call <small id="lc-meta"></small></h2>
+        <div class="call" id="lastcall"><p class="empty">Press <b>Turn out a station</b>. Each call is generated as real SelCall tones, then decoded here from the audio.</p></div>
+      </section>
+
+      <section class="panel" id="stationpanel" hidden aria-label="Station">
+        <h2><span id="sp-name">Station</span> <small id="sp-code"></small></h2>
+        <div class="stationcard" id="sp-body"></div>
+      </section>
+
+      <section class="panel" aria-label="Radio log">
+        <h2>Radio log <small>newest first</small></h2>
+        <ul class="log" id="log"><li><span></span><span class="empty">Nothing heard yet.</span><span></span></li></ul>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="note">
+    <p>Everything on this board is simulated. Turnout codes and known appliance IDs come from this repo's <code>Store/</code> lists; other appliance IDs are placeholders. Station positions are approximate. Appliance status codes (responding, at incident, returning, on station) are made up for the simulation: the real meaning of the status part of appliance messages is unknown.</p>
+    <p>Every call is synthesised as audio (20 ms tones on the CCIR frequencies), noise is added for the chosen signal strength, and the board only shows what the decoder recovers. Coastline: GSHHS full resolution.</p>
+  </footer>
+</div>
+
+<script>
+/*__DECODER__*/
+</script>
+<script>
+const GEO = /*__GEO__*/null;
+(function () {
+  const SC = window.SelCall;
+  const $ = (id) => document.getElementById(id);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, parent) => {
+    const n = document.createElementNS(svgNS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const nzTime = () => new Date().toLocaleTimeString("en-NZ", { timeZone: "Pacific/Auckland", hour12: false });
+
+  // Status codes: invented for this simulation (real meanings unknown).
+  const STATUS = {
+    responding: { k: "1", label: "Responding", cls: "p-responding" },
+    scene: { k: "2", label: "At incident", cls: "p-scene" },
+    returning: { k: "4", label: "Returning", cls: "p-returning" },
+    station: { k: "7", label: "On station", cls: "p-station" },
+  };
+  const BY_K = Object.fromEntries(Object.entries(STATUS).map(([key, s]) => [s.k, key]));
+  const bodyFor = (key) => STATUS[key].k + "A0C2";
+
+  // ---- model ----
+  const stations = GEO.stations;
+  const byId = Object.fromEntries(stations.map((s) => [s.id, s]));
+  const byCode = Object.fromEntries(stations.map((s) => [s.code, s]));
+  const apps = [];
+  for (const s of stations) for (const a of s.apps) apps.push({ ...a, station: s, status: "available", x: s.x, y: s.y, decoded: "available" });
+  const appById = Object.fromEntries(apps.map((a) => [a.id, a]));
+  const incidents = [];
+  const stats = { ok: 0, flag: 0 };
+  let snr = 8, sound = false, auto = false, audioCtx = null, selected = null, lastAudio = null;
+
+  // ---- map ----
+  const svg = $("map");
+  $("land").setAttribute("d", GEO.path);
+  const VIEWS = { city: { x: 150, y: 300, w: 745, h: 760 }, all: { x: 0, y: 0, w: 1000, h: 1111 } };
+  let vb = { ...VIEWS.city };
+  let unit = 1; // SVG units per CSS px
+  const LABEL_DIR = { city: "t", parnell: "r", greylynn: "l", remuera: "r", balmoral: "r", mtroskill: "l", avondale: "b",
+    ellerslie: "r", mtwellington: "b", stheliers: "b", takapuna: "r", devonport: "r", birkenhead: "l", ecb: "r", greenhithe: "l", albany: "r" };
+
+  const waterG = $("waterlabels");
+  for (const l of GEO.labels) {
+    const t = el("text", { class: "water", x: l.x, y: l.y, "text-anchor": "middle" }, waterG);
+    t.textContent = l.t;
+    t.dataset.land = l.land ? "1" : "";
+  }
+  const stG = $("stations");
+  for (const s of stations) {
+    const g = el("g", { class: "st", "data-id": s.id, tabindex: "0", role: "button", "aria-label": s.name }, stG);
+    el("circle", { class: "ring", r: 7 }, g);
+    el("circle", { class: "dot", r: 6 }, g);
+    const d = LABEL_DIR[s.id] || "r";
+    const pos = { r: [10, 4, "start"], l: [-10, 4, "end"], t: [0, -11, "middle"], b: [0, 19, "middle"] }[d];
+    const t = el("text", { class: "lbl", x: pos[0], y: pos[1], "text-anchor": pos[2] }, g);
+    t.textContent = s.name;
+    el("circle", { class: "hit", r: 16 }, g);
+    s.g = g;
+    const choose = () => selectStation(s.id);
+    g.addEventListener("click", choose);
+    g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(); } });
+  }
+  const trG = $("trucks"), incG = $("incidents"), routeG = $("routes");
+  for (const a of apps) {
+    const g = el("g", { class: "truck" }, trG);
+    el("rect", { x: -18, y: -9, width: 36, height: 18, rx: 3 }, g);
+    const t = el("text", { x: -3, y: 4, "text-anchor": "middle" }, g);
+    t.textContent = a.call;
+    a.dot = el("circle", { cx: 13, cy: 0, r: 3.2, fill: "var(--respond)" }, g);
+    a.g = g;
+    g.style.display = "none";
+  }
+
+  function setView(name, animate = true) {
+    const target = VIEWS[name];
+    $("v-city").setAttribute("aria-pressed", String(name === "city"));
+    $("v-all").setAttribute("aria-pressed", String(name === "all"));
+    const from = { ...vb }, t0 = performance.now(), dur = animate && !matchMedia("(prefers-reduced-motion: reduce)").matches ? 450 : 0;
+    const step = (now) => {
+      const k = dur ? Math.min(1, (now - t0) / dur) : 1, e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      for (const p of ["x", "y", "w", "h"]) vb[p] = from[p] + (target[p] - from[p]) * e;
+      svg.setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+      rescale();
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function rescale() {
+    const r = svg.getBoundingClientRect();
+    if (!r.width) return;
+    // "slice" fills the box and crops the overflow, so the visible scale is the larger one.
+    unit = Math.min(vb.w / r.width, vb.h / r.height);
+    for (const s of stations) s.g.setAttribute("transform", `translate(${s.x} ${s.y}) scale(${unit})`);
+    for (const t of waterG.children) {
+      t.setAttribute("font-size", 12 * unit);
+      t.style.display = t.dataset.land ? "none" : "";
+    }
+    for (const i of incidents) placeIncident(i);
+    for (const a of apps) placeTruck(a);
+  }
+  new ResizeObserver(rescale).observe($("mapwrap"));
+  $("v-city").addEventListener("click", () => setView("city"));
+  $("v-all").addEventListener("click", () => setView("all"));
+
+  function placeTruck(a) {
+    if (a.status === "available") { a.g.style.display = "none"; return; }
+    a.g.style.display = "";
+    a.g.setAttribute("transform", `translate(${a.x} ${a.y - 16 * unit}) scale(${unit})`);
+  }
+  function placeIncident(i) { i.g.setAttribute("transform", `translate(${i.x} ${i.y}) scale(${unit})`); }
+
+  // ---- radio: synthesise -> decode -> log ----
+  function ensureAudio() {
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; } }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }
+  function play(samples, fs) {
+    if (!sound || !audioCtx) return;
+    const buf = audioCtx.createBuffer(1, samples.length, fs);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < samples.length; i++) ch[i] = samples[i] * 0.35;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.connect(audioCtx.destination); src.start();
+  }
+  function transmit(code) {
+    const fs = sound && audioCtx ? audioCtx.sampleRate : 8000;
+    const x = SC.synth(code, fs, snr);
+    const t0 = performance.now();
+    const ev = SC.decode(x, fs)[0] || null;
+    const ms = performance.now() - t0;
+    play(x, fs);
+    lastAudio = { x, fs };
+    return { sent: code, ev, ms };
+  }
+  function interpret(ev) {
+    if (!ev || ev.confidence < 0.5 || ev.code.includes("?")) return null;
+    if (ev.kind === "station" && byCode[ev.code]) return { type: "turnout", station: byCode[ev.code] };
+    if (ev.kind === "appliance-msg") {
+      const [head, rest] = ev.code.split("-");
+      const a = appById[head], key = BY_K[rest.slice(1, 2)];
+      if (a && key && rest.slice(2) === "A0C2") return { type: "status", app: a, key };
+    }
+    return { type: "unknown" };
+  }
+
+  const logEl = $("log");
+  function log(pillCls, pillText, title, code, conf) {
+    if (logEl.querySelector(".empty")) logEl.innerHTML = "";
+    const li = document.createElement("li");
+    li.className = "new";
+    const pct = conf == null ? "" : `${Math.round(conf * 100)}%`;
+    li.innerHTML = `<time>${nzTime()}</time><span class="what"><b></b><code></code></span><span class="pill ${pillCls}"></span>`;
+    li.querySelector("b").textContent = title;
+    li.querySelector("code").textContent = `${code}${pct ? "  ·  " + pct : ""}`;
+    li.querySelector(".pill").textContent = pillText;
+    logEl.prepend(li);
+    while (logEl.children.length > 60) logEl.lastChild.remove();
+  }
+
+  const toneHue = (f) => 205 - ((f - 930) / (2400 - 930)) * 185;
+  function showCall(res, meaning) {
+    const box = $("lastcall");
+    const ev = res.ev;
+    $("lc-meta").textContent = ev ? `decoded in ${res.ms.toFixed(1)} ms` : "";
+    if (!ev) {
+      box.innerHTML = `<p class="empty">Nothing decoded. The signal was too weak for any tones to be found. Sent <code></code>.</p>`;
+      box.querySelector("code").textContent = res.sent;
+      return;
+    }
+    const long = ev.kind === "appliance-msg";
+    const groups = long ? [["ID", 0, 5], ["Sep", 5, 6], ["Status", 6, ev.slots.length]]
+                        : [["Station / unit", 0, 5], ["Final", 5, 6]];
+    const slotHtml = ([lab, cov], i) => {
+      const name = lab >= 0 ? SC.NAMES[lab] : "?";
+      const f = lab >= 0 ? SC.TONES[name] : 0;
+      const bg = lab >= 0 ? `background:hsl(${toneHue(f)} 62% 42%);` : "";
+      return `<div class="slot${long && i === 5 ? " sep" : ""}${lab < 0 ? " miss" : ""}" style="${bg}opacity:${(0.35 + 0.65 * cov).toFixed(2)}" title="${name} ${f || ""} Hz, ${Math.round(cov * 100)}% of slot"><b>${name}</b><span>${f || "—"}</span></div>`;
+    };
+    let html = `<div class="callhead"><span class="callcode"></span><span class="pill"></span></div>
+      <div class="callwhat"></div><div class="callsub"></div>
+      <div class="strip">${groups.map(([g, a, b]) =>
+        `<div class="tgroup"><div>${ev.slots.slice(a, b).map((p, j) => slotHtml(p, a + j)).join("")}</div><span>${g}</span></div>`).join("")}</div>
+      <div class="label"><span>Confidence (weakest slot)</span><b>${Math.round(ev.confidence * 100)}%</b></div>
+      <div class="meter${ev.confidence < 0.5 ? " low" : ""}"><i style="width:${Math.round(ev.confidence * 100)}%"></i></div>`;
+    box.innerHTML = html;
+    box.querySelector(".callcode").textContent = ev.code;
+    const p = box.querySelector(".pill");
+    p.className = `pill ${meaning.cls}`; p.textContent = meaning.pill;
+    box.querySelector(".callwhat").textContent = meaning.title;
+    box.querySelector(".callsub").textContent = ev.code === res.sent
+      ? `Sent ${res.sent} · matches`
+      : `Sent ${res.sent} · ${meaning.pill === "Unreadable" ? "flagged, not trusted" : "decoded differently"}`;
+  }
+
+  // Send a call over the air and apply whatever the decoder makes of it.
+  function sendCall(code) {
+    const res = transmit(code);
+    const m = interpret(res.ev);
+    let meaning;
+    if (!m) {
+      stats.flag++;
+      meaning = { pill: "Unreadable", cls: "p-flag", title: "Call heard but not trusted" };
+      log("p-flag", "Unreadable", "Weak or garbled call", res.ev ? res.ev.code : "no tones found", res.ev ? res.ev.confidence : null);
+    } else if (m.type === "turnout") {
+      stats.ok++;
+      meaning = { pill: "Turnout", cls: "p-turnout", title: `${m.station.name} station turned out` };
+      log("p-turnout", "Turnout", m.station.name, res.ev.code, res.ev.confidence);
+      alertStation(m.station);
+    } else if (m.type === "status") {
+      stats.ok++;
+      const s = STATUS[m.key];
+      m.app.decoded = m.key;
+      meaning = { pill: s.label, cls: s.cls, title: `${m.app.station.name} ${m.app.call} · ${s.label}` };
+      log(s.cls, s.label, `${m.app.station.name} ${m.app.call}`, res.ev.code, res.ev.confidence);
+    } else {
+      stats.ok++;
+      meaning = { pill: "Unknown", cls: "p-flag", title: "Decoded, but not a known code" };
+      log("p-flag", "Unknown", "Unrecognised code", res.ev.code, res.ev.confidence);
+    }
+    showCall(res, meaning);
+    refresh();
+  }
+
+  function alertStation(s) {
+    s.g.classList.add("alerted");
+    clearTimeout(s.alertTimer);
+    s.alertTimer = setTimeout(() => s.g.classList.remove("alerted"), 9000);
+  }
+
+  // ---- simulated incidents (ground truth; the board shows decodes) ----
+  function moveTo(a, x, y, ms) {
+    return new Promise((done) => {
+      const fx = a.x, fy = a.y, t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / ms);
+        a.x = fx + (x - fx) * k; a.y = fy + (y - fy) * k;
+        placeTruck(a);
+        if (k < 1) requestAnimationFrame(step); else done();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  function setStatus(a, status) {
+    a.status = status;
+    const colour = { responding: "var(--respond)", scene: "var(--scene)", returning: "var(--return)" }[status];
+    if (colour) a.dot.setAttribute("fill", colour);
+    a.station.g.classList.toggle("busy", a.station.apps.some((x) => appById[x.id].status !== "available"));
+    placeTruck(a);
+    refresh();
+  }
+
+  async function runIncident(station) {
+    const free = station.apps.map((x) => appById[x.id]).filter((a) => a.status === "available");
+    if (!free.length) return false;
+    const a = free[0];
+    const [ix, iy] = pick(station.incidents);
+    const inc = { x: ix, y: iy, station };
+    inc.g = el("g", { class: "inc" }, incG);
+    el("circle", { class: "pulse", r: 9 }, inc.g);
+    el("rect", { class: "core", x: -5.5, y: -5.5, width: 11, height: 11, transform: "rotate(45)" }, inc.g);
+    incidents.push(inc); placeIncident(inc);
+    const route = el("line", { class: "route", x1: station.x, y1: station.y, x2: ix, y2: iy }, routeG);
+
+    sendCall(station.code);
+    a.status = "turning-out";
+    await wait(2600);
+    setStatus(a, "responding");
+    sendCall(`${a.id}-F${bodyFor("responding")}`);
+    const dist = Math.hypot(ix - station.x, iy - station.y);
+    await moveTo(a, ix, iy, Math.max(3500, Math.min(11000, dist * 45)));
+    setStatus(a, "scene");
+    sendCall(`${a.id}-F${bodyFor("scene")}`);
+    await wait(rand(9000, 16000));
+    setStatus(a, "returning");
+    route.classList.add("back");
+    inc.g.classList.add("clearing");
+    sendCall(`${a.id}-F${bodyFor("returning")}`);
+    await moveTo(a, station.x, station.y, Math.max(3500, Math.min(11000, dist * 55)));
+    route.remove(); inc.g.remove(); incidents.splice(incidents.indexOf(inc), 1);
+    sendCall(`${a.id}-F${bodyFor("station")}`);
+    setStatus(a, "available");
+    if (selected) renderStation();
+    return true;
+  }
+
+  function freeStations() { return stations.filter((s) => s.apps.some((x) => appById[x.id].status === "available")); }
+  function turnoutRandom() {
+    const free = freeStations();
+    if (!free.length) return;
+    // Busier central stations get more calls.
+    const weighted = free.flatMap((s) => (["city", "greylynn", "parnell", "balmoral", "remuera"].includes(s.id) ? [s, s, s] : [s]));
+    runIncident(pick(weighted));
+  }
+  $("turnout").addEventListener("click", () => {
+    if (sound) ensureAudio();
+    if (selected) runIncident(byId[selected]); else turnoutRandom();
+  });
+
+  let autoTimer = null;
+  function scheduleAuto() {
+    clearTimeout(autoTimer);
+    if (!auto) return;
+    autoTimer = setTimeout(() => { turnoutRandom(); scheduleAuto(); }, rand(6000, 13000));
+  }
+  $("auto").addEventListener("click", (e) => {
+    auto = !auto;
+    e.currentTarget.setAttribute("aria-pressed", String(auto));
+    if (auto) turnoutRandom();
+    scheduleAuto();
+  });
+  $("sound").addEventListener("click", (e) => {
+    sound = !sound;
+    e.currentTarget.setAttribute("aria-pressed", String(sound));
+    if (sound) ensureAudio();
+  });
+  const SNR_NAME = { "25": "Strong", "8": "Fair", "2": "Weak", "-3": "Very weak" };
+  for (const b of $("signal").querySelectorAll("button")) {
+    b.addEventListener("click", () => {
+      snr = Number(b.dataset.snr);
+      for (const o of $("signal").querySelectorAll("button")) o.setAttribute("aria-pressed", String(o === b));
+      $("snr-read").textContent = `${SNR_NAME[b.dataset.snr]} · ${snr} dB`;
+    });
+  }
+
+  // ---- station panel ----
+  function selectStation(id) {
+    selected = selected === id ? null : id;
+    for (const s of stations) s.g.classList.toggle("sel", s.id === selected);
+    renderStation();
+  }
+  function renderStation() {
+    const panel = $("stationpanel");
+    if (!selected) { panel.hidden = true; $("turnout").textContent = "Turn out a station"; refresh(); return; }
+    const s = byId[selected];
+    panel.hidden = false;
+    $("sp-name").textContent = s.name;
+    $("sp-code").textContent = `turnout code ${s.code}`;
+    const body = $("sp-body");
+    body.innerHTML = `<div class="applist"></div><div class="row"><button class="btn" id="sp-close">Clear selection</button></div>`;
+    const list = body.querySelector(".applist");
+    for (const x of s.apps) {
+      const a = appById[x.id];
+      const st = a.status === "available" || a.status === "turning-out" ? null : STATUS[a.status];
+      const row = document.createElement("div");
+      row.className = "app-row";
+      row.innerHTML = `<span><b></b> <code></code></span><span class="pill"></span>`;
+      row.querySelector("b").textContent = `${s.name} ${a.call}`;
+      row.querySelector("code").textContent = `ID ${a.id}`;
+      if (!a.known) { const t = document.createElement("span"); t.className = "tag"; t.textContent = "placeholder"; row.firstChild.appendChild(t); }
+      const p = row.querySelector(".pill");
+      p.className = `pill ${st ? st.cls : "p-available"}`;
+      p.textContent = st ? st.label : (a.status === "turning-out" ? "Turning out" : "Available");
+      list.appendChild(row);
+    }
+    $("sp-close").addEventListener("click", () => selectStation(selected));
+    refresh();
+  }
+
+  function refresh() {
+    $("s-out").textContent = apps.filter((a) => a.status !== "available").length;
+    $("s-ok").textContent = stats.ok;
+    $("s-flag").textContent = stats.flag;
+    const tb = $("turnout");
+    if (selected) {
+      const s = byId[selected], free = s.apps.some((x) => appById[x.id].status === "available");
+      tb.textContent = free ? `Turn out ${s.name}` : `${s.name}: all out`;
+      tb.disabled = !free;
+    } else { tb.textContent = "Turn out a station"; tb.disabled = !freeStations().length; }
+    if (selected && !$("stationpanel").hidden) {
+      const pills = $("sp-body").querySelectorAll(".app-row .pill");
+      byId[selected].apps.forEach((x, i) => {
+        const a = appById[x.id], st = STATUS[a.status];
+        if (pills[i]) { pills[i].className = `pill ${st ? st.cls : "p-available"}`; pills[i].textContent = st ? st.label : (a.status === "turning-out" ? "Turning out" : "Available"); }
+      });
+    }
+  }
+
+  const tick = () => { $("clock").textContent = nzTime(); };
+  tick(); setInterval(tick, 1000);
+  setView("city", false);
+  refresh();
+
+  // Open in a working state: one incident already under way.
+  setTimeout(() => runIncident(byId.greylynn), 400);
+})();
+</script>

@@ -184,8 +184,10 @@ def _slot_read(ev, times, labels, cfg):
     sep_pick, body_picks = picks_long[5], picks_long[6:]
     n_body = 0
     # A slot repeating the previous raw tone is an echo tail: real repeats are
-    # sent as E, so the body ends there.
-    while (n_body < len(body_picks) and body_picks[n_body][1] >= 0.4
+    # sent as E, so the body ends there. Both real messages had 5 body tones,
+    # so reading past 5 needs a clearer tone than the first five.
+    while (n_body < len(body_picks)
+           and body_picks[n_body][1] >= (0.4 if n_body < 5 else 0.7)
            and (n_body == 0 or body_picks[n_body][0] != body_picks[n_body - 1][0])):
         n_body += 1
     is_long = sep_pick[1] >= 0.6 and n_body >= 3
