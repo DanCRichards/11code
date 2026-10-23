@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { detectSameOriginBackend, startSource } from "./sources/controller";
+import { demoActions, detectSameOriginBackend, startSource } from "./sources/controller";
 import { load, store, useStore } from "./store";
 import { clockTime, Icon, useBoard, useNow } from "./ui/common";
 import { DataView } from "./ui/DataView";
@@ -12,6 +12,7 @@ import { unlockAlertAudio, useAlerts } from "./ui/alerts";
 import { AlarmOverlay, useAlarms, type AlarmKind } from "./ui/Alarm";
 import { MuteButton } from "./ui/Mute";
 import { MyBoardView } from "./ui/MyBoard";
+import { QuizView } from "./ui/Quiz";
 
 const TABS: [Tab, string, keyof typeof Icon][] = [
   ["live", "Live", "live"], ["board", "My board", "board"], ["appliances", "Appliances", "units"], ["stations", "Stations", "stations"],
@@ -22,6 +23,7 @@ function tabFromHash(): Tab {
   const h = typeof location !== "undefined" ? location.hash.slice(1) : "";
   if (h === "settings" || h === "data") return "data";
   if (h === "tv") return "board";
+  if (h === "quiz") return "quiz";
   return (TABS.find((t) => t[0] === h)?.[0]) ?? "live";
 }
 
@@ -43,7 +45,7 @@ export function App() {
     return () => window.removeEventListener("tb-test-alarm", test);
   }, [alarm]);
   useEffect(() => {
-    const unlock = () => unlockAlertAudio();
+    const unlock = () => { unlockAlertAudio(); demoActions.unlockAudio(); };
     window.addEventListener("pointerdown", unlock, { once: true });
     return () => window.removeEventListener("pointerdown", unlock);
   }, []);
@@ -108,6 +110,7 @@ export function App() {
         {tab === "stations" && <StationsView nav={nav} />}
         {tab === "log" && <LogView nav={nav} filter={filter} />}
         {tab === "data" && <DataView sub={filter} />}
+        {tab === "quiz" && <QuizView />}
       </main>
       <PlayerBar />
       <AlarmOverlay hits={alarm.hits} onAck={alarm.ack} ix={ix} />

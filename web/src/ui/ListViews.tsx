@@ -85,7 +85,10 @@ export function StationsView({ nav }: { nav: Nav }) {
       : sort === "name" ? x.s.name.localeCompare(y.s.name) : (x.s.number || "99").localeCompare(y.s.number || "99")));
   return (
     <>
-      <h1 className="page-title">Stations</h1>
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <h1 className="page-title">Stations</h1>
+        <button className="btn" onClick={() => nav.tab("quiz")}>Tone quiz</button>
+      </div>
       <input className="search" type="search" placeholder="Search station name or number" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search stations" />
       <section className="panel">
         <div className="row" style={{ justifyContent: "space-between" }}>

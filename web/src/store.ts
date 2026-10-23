@@ -166,7 +166,7 @@ function initialSettings(): Settings {
     alarm: { ...DEFAULT_SETTINGS.alarm, ...saved.alarm },
     priorityAlarm: { ...DEFAULT_SETTINGS.priorityAlarm, ...saved.priorityAlarm },
   };
-  s.sim.sound = false; // audio needs a tap each visit
+  // Demo tones are remembered; browsers still need a tap before they play (App unlocks on the first one).
   // ?backend=https://host:8080 (or #backend=... is not allowed in some hosts) preselects live mode.
   try {
     const q = new URLSearchParams(location.search).get("backend");

@@ -186,6 +186,8 @@ function SourceStrip({ nav }: { nav: Nav }) {
   let body;
   if (mode === "demo") {
     body = <><span className="src-dot demo" /><span className="grow"><b>Demo traffic</b> <span className="muted">· {sim.speed}× speed</span></span>
+      <button className="btn" aria-pressed={sim.sound} title="Play the demo's SelCall tones" onClick={() => { demoActions.unlockAudio(); store.sim({ sound: !sim.sound }); }}>
+        {sim.sound ? "Tones on" : "Tones off"}</button>
       <button className="btn" onClick={() => { demoActions.unlockAudio(); demoActions.turnout(); }}>Simulate</button></>;
   } else if (mode === "input") {
     const on = input?.status === "listening";

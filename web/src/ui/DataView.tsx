@@ -142,6 +142,11 @@ function SettingsHome({ open }: { open: (s: Section) => void }) {
             <span className="chev" aria-hidden="true">›</span>
           </button>
         ))}
+        <a className="settings-card" href="#quiz">
+          <span className="sicon s-quiz" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg></span>
+          <span className="sc-text"><b>Tone quiz</b><span>Hear a turnout tone and guess the station</span></span>
+          <span className="chev" aria-hidden="true">›</span>
+        </a>
         <a className="settings-card" href="./design-options.html" target="_blank" rel="noopener">
           <span className="sicon s-looks" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10Z" /><circle cx="7.5" cy="11" r="1" /><circle cx="10" cy="7" r="1" /><circle cx="15" cy="7.5" r="1" /></svg></span>
           <span className="sc-text"><b>Design options</b><span>Compare four looks for the app (opens in a new tab)</span></span>

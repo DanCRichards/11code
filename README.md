@@ -29,6 +29,8 @@ For a live board fed by your radio, see [`server/README.md`](server/README.md).
 - **Acknowledge** silences everything: the alarm, any chime, and the alert's temporary un-mute. The test buttons in Settings never play over each other.
 - **Mute with auto un-mute:** the speaker button mutes radio audio. Any alert or alarm un-mutes it for 45 seconds or a minute, then it mutes again.
 - **Settings** (the gear): radio source (demo, recording, audio input, backend), alerts, the station and truck list, backup, and **Design options** (or `…/design-options.html`), which compares four looks for the app.
+- **Tone quiz** (Stations → Tone quiz, Settings, or `…/#quiz`): hear a truck's turnout tones and pick the station. Score, streak and best streak; all stations or just yours; 4 or 8 choices; keys 1–8, Space to replay, Enter for the next.
+- **Demo tones:** the Tones on/off button on Live plays the demo's SelCall tones, and is remembered.
 - **Appliances**, **Stations** and **Log:** every fire engine and station with its current status, and every call heard, searchable and filterable.
 - **Audio input:** listen to a scanner through a microphone, line-in or USB sound card, and hear it through your speakers at the same time. Needs https (the Pages site is) and a browser that allows audio input.
 - **Recordings:** open an audio file or phone video; it plays back with a waveform scrubber and each call appears on the board as you hear it.

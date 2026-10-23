@@ -1,4 +1,4 @@
-export type Tab = "live" | "board" | "appliances" | "stations" | "log" | "data";
+export type Tab = "live" | "board" | "appliances" | "stations" | "log" | "data" | "quiz";
 
 export interface Nav {
   tab: (tab: Tab, filter?: string) => void;
