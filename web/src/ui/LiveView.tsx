@@ -46,7 +46,7 @@ export function LiveView({ nav }: { nav: Nav }) {
           <span className="banner-icon" aria-hidden="true">!</span>
           <div className="grow">
             <b>Priority call</b>
-            <div>{prio.title} wants Comcen to respond · {ago(prio.call.time, now)}</div>
+            <div>{prio.title} · {ago(prio.call.time, now)}</div>
           </div>
           <button onClick={() => prio.applianceId && nav.appliance(prio.applianceId)}>View</button>
           <button onClick={() => store.settings({ priorityHiddenUntil: prio.call.time + 1500 })} aria-label="Dismiss">Hide</button>
