@@ -119,20 +119,20 @@ export function QuizView() {
 
         {!q ? (
           <div className="quiz-start">
-            <p>You'll hear a truck's turnout tones. Pick the station it belongs to.</p>
+
             {scope === "mine" && !pool.length
-              ? <p className="note">You haven't picked any stations yet. Add trucks to a board, star a station, or switch to All stations.</p>
-              : <button className="btn primary big" onClick={next}>Start: play the first tone</button>}
-            <p className="note">Plays through your speakers even when the radio is muted. Keys: 1–{CHOICES[level]} to answer, Space to hear it again, Enter for the next one.</p>
+              ? <p className="note">No stations set. Add some to a board or star them.</p>
+              : <button className="btn primary big" onClick={next}>Start</button>}
+            <p className="note">Keys: 1–{CHOICES[level]} answer, Space replay, Enter next.</p>
           </div>
         ) : (
           <>
             <div className="quiz-play">
               <button className="quiz-hear" onClick={() => playTones(q.code)} aria-label="Hear the tones again">
                 <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></svg>
-                <span>Hear it again</span>
+                <span>Replay</span>
               </button>
-              <p className="quiz-prompt">{answer ? (right ? "Correct" : "Not quite") : "Which station is this?"}</p>
+              <p className="quiz-prompt">{answer ? (right ? "Correct" : "Wrong") : "Which station?"}</p>
             </div>
             <div className={`quiz-options n${q.options.length}`}>
               {q.options.map((sid, i) => {
@@ -150,8 +150,7 @@ export function QuizView() {
                   <b>{name(q.stationId)} {ix.appliance.get(q.applianceId)?.callsign}</b>
                   <span className="mono">{q.code.slice(0, 3)} · {q.code.slice(3)}</span>
                 </div>
-                <p className="note">Turnout tones are 182, then the truck's callsign. The first two digits of the callsign are the station.</p>
-                <button className="btn primary" onClick={next} autoFocus>Next tone</button>
+                <button className="btn primary" onClick={next} autoFocus>Next</button>
               </div>
             )}
           </>

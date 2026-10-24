@@ -41,9 +41,7 @@ export function KCodePicker({ applianceId, current, onDone, big = false }: {
     <div className={`kpick-wrap${big ? " big" : ""}`}>
       {group("Status", codes.filter((c) => !c.arrival))}
       {group("First to arrive", codes.filter((c) => c.arrival))}
-      <p className="note">{msg || (live && hasKey ? "Sent to the live server, so everyone watching sees it."
-        : live ? "Add the backend's editing key in Settings to share this; for now it's only on this screen."
-        : "Only changes this screen, as if the truck had sent that K code.")}</p>
+      <p className="note">{msg || (live && hasKey ? "Shared with everyone on the server." : "This screen only.")}</p>
     </div>
   );
 }

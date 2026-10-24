@@ -47,7 +47,7 @@ export function ImportPanel({ compact }: { compact?: boolean }) {
         <button className="btn" onClick={() => void fileActions.open()}>Try a generated sample</button>
         {mode === "file" && <button className="btn" onClick={() => fileActions.close()}>Back to demo</button>}
       </div>
-      {!compact && <p className="note">Drop a scanner recording or phone video here. It's decoded in your browser, then plays back with each call appearing on the board as you hear it.</p>}
+      {!compact && <p className="note">Or drop a file here.</p>}
       {p?.decoding !== null && p?.decoding !== undefined && (
         <div className="grid-gap">
           <div className="small">Decoding… {Math.round(p.decoding * 100)}%</div>

@@ -113,8 +113,8 @@ export function MyBoardView({ nav }: { nav: Nav }) {
 
       {groups.length === 0 ? (
         <section className="panel">
-          <p className="empty">Pick the stations and trucks for this board: your local station, a few favourites, or a whole area. Each truck gets a cell coloured by its status, and flashes when it's turned out. Make more boards for other areas with "New board".</p>
-          <div className="row"><button className="btn primary" onClick={() => setEditing(true)}>Choose stations and trucks</button></div>
+          <p className="empty">No trucks on this board.</p>
+          <div className="row"><button className="btn primary" onClick={() => setEditing(true)}>Add trucks</button></div>
         </section>
       ) : (
         <div ref={wrap} className={`myboard ${cfg.size}`}>
@@ -140,7 +140,6 @@ export function MyBoardView({ nav }: { nav: Nav }) {
           <label className="field"><span>Board name</span>
             <input value={current.name} onChange={(e) => store.renameBoard(current.id, e.target.value)} placeholder="e.g. Central, North Shore" />
           </label>
-          <p className="note">Tap a station to add all its trucks, or pick trucks one at a time. Trucks show grouped under their station.</p>
           <UnitPicker stationMode="add-all" appliances={cfg.appliances} onChange={({ appliances }) => store.myBoard({ appliances })} />
           <div className="row">
             <button className="btn primary" onClick={() => setEditing(false)}>Done</button>

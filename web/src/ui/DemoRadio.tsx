@@ -8,12 +8,12 @@ export function DemoRadio() {
   const [msg, setMsg] = useState("");
   return (
     <section className="panel radio" aria-label="Demo radio">
-      <h2>Demo radio <small>simulated traffic, decoded from audio</small></h2>
+      <h2>Demo</h2>
       <div className="row">
-        <button className="btn primary" onClick={() => { demoActions.unlockAudio(); setMsg(demoActions.turnout() ? "" : "Every station with a free appliance is busy."); }}>Turn out a station</button>
-        <button className="btn" onClick={() => { demoActions.unlockAudio(); demoActions.priority(); }}>Send priority call</button>
-        <button className="btn" aria-pressed={sim.auto} onClick={() => store.sim({ auto: !sim.auto })}>Auto traffic</button>
-        <button className="btn" aria-pressed={sim.sound} onClick={() => { store.sim({ sound: !sim.sound }); demoActions.unlockAudio(); }}>Hear the tones</button>
+        <button className="btn primary" onClick={() => { demoActions.unlockAudio(); setMsg(demoActions.turnout() ? "" : "All stations busy."); }}>Turnout</button>
+        <button className="btn" onClick={() => { demoActions.unlockAudio(); demoActions.priority(); }}>Priority call</button>
+        <button className="btn" aria-pressed={sim.auto} onClick={() => store.sim({ auto: !sim.auto })}>Auto</button>
+        <button className="btn" aria-pressed={sim.sound} onClick={() => { store.sim({ sound: !sim.sound }); demoActions.unlockAudio(); }}>Tones</button>
       </div>
       {msg && <div className="small muted">{msg}</div>}
       <div className="row"><label>Speed</label>

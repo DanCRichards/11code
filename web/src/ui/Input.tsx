@@ -14,10 +14,9 @@ export function InputPanel({ compact }: { compact?: boolean }) {
   if (compact && !active) {
     return (
       <section className="panel" aria-label="Listen to a radio">
-        <h2>Listen to a radio <small>microphone, line-in or USB sound card</small></h2>
+        <h2>Audio input</h2>
         <div className="row">
           <button className="btn primary" onClick={() => void inputActions.listen()}>Use an audio input</button>
-          <span className="small muted">Decodes live and plays the audio back so you can hear it.</span>
         </div>
       </section>
     );
@@ -69,9 +68,9 @@ export function InputPanel({ compact }: { compact?: boolean }) {
             onChange={(e) => inputActions.setMonitor({ volume: Number(e.target.value) })} aria-label="Monitor volume" />
         </label>
       </div>
-      {cfg.monitor && micLike && <p className="note">With a microphone and speakers the sound can feed back and howl. Use headphones, or plug the scanner into line-in.</p>}
+      {cfg.monitor && micLike && <p className="note">Use headphones with a microphone to avoid feedback.</p>}
       {!compact && !listening && (
-        <p className="note">Plug the scanner's headphone socket into your computer's line-in or a USB sound card (a phone headset adapter works too), choose it above and start listening. Calls appear on the board as they're decoded. Audio stays on this device.</p>
+        <p className="note">Connect the scanner's headphone out to line-in or a USB sound card.</p>
       )}
     </section>
   );

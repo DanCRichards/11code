@@ -53,20 +53,13 @@ export function DataView({ sub: initial }: { sub?: string }) {
   const [codebookSub, setCodebookSub] = useState<Sub>(CODEBOOK_SUBS.some((c) => c[0] === initial) ? (initial as Sub) : "stations");
   const open = (s: Section | null) => { setSection(s); window.scrollTo({ top: 0 }); };
   if (!section) return <SettingsHome open={open} />;
-  const titles: Record<Section, [string, string]> = {
-    source: ["Radio source", "Where the board's calls come from"],
-    alerts: ["Alerts & alarms", "What should get your attention, and how loudly"],
-    inbox: ["Unknown codes", "Calls the board couldn't place yet"],
-    codebook: ["Stations & trucks", "The codebook: who each tone sequence belongs to"],
-    backup: ["Backup & sharing", "Copy your codebook to another device, or start fresh"],
+  const titles: Record<Section, string> = {
+    source: "Source", alerts: "Alerts", inbox: "Unknown codes", codebook: "Codebook", backup: "Import / export",
   };
   return (
     <>
       <button className="backlink" onClick={() => open(null)}>‹ Settings</button>
-      <div className="section-head">
-        <span className={`sicon s-${section}`} aria-hidden="true">{SECTION_ICON[section]}</span>
-        <div><h1 className="page-title">{titles[section][0]}</h1><p className="note">{titles[section][1]}</p></div>
-      </div>
+      <h1 className="page-title">{titles[section]}</h1>
       {section === "source" && <SourcePanel />}
       {section === "alerts" && <AlertsPanel />}
       {section === "inbox" && <Inbox />}
@@ -88,16 +81,7 @@ export function DataView({ sub: initial }: { sub?: string }) {
   );
 }
 
-const SECTION_ICON: Record<Section | "setup", ReactNode> = {
-  source: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="2.5" /><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" /></svg>,
-  alerts: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>,
-  inbox: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01" /></svg>,
-  codebook: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M3 21V10l9-6 9 6v11z" /><path d="M8 21v-6h8v6" /></svg>,
-  backup: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>,
-  setup: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" /></svg>,
-};
-
-/** The settings landing page: one card per area, each saying how it's set now. */
+/** Settings landing page: a plain list, each row showing its current value. */
 function SettingsHome({ open }: { open: (s: Section) => void }) {
   const st = useStore((s) => s.settings);
   const cb = useStore((s) => s.codebook);
@@ -106,52 +90,30 @@ function SettingsHome({ open }: { open: (s: Section) => void }) {
   const { board } = useBoard();
   const [setup, setSetup] = useState(false);
   const name = (id: string) => cb.stations.find((s) => s.id === id)?.name ?? id;
-  const source = st.mode === "demo" ? `Demo traffic at ${st.sim.speed}× speed`
-    : st.mode === "input" ? (input?.status === "listening" ? "Listening to an audio input" : "Audio input (not listening)")
-    : st.mode === "file" ? "Playing a recording" : `Backend ${st.backendUrl || "on this server"}`;
+  const source = st.mode === "demo" ? `Demo, ${st.sim.speed}×`
+    : st.mode === "input" ? (input?.status === "listening" ? "Audio input" : "Audio input (off)")
+    : st.mode === "file" ? "Recording" : st.backendUrl || "Backend";
   const alarmCount = st.alarm.stations.length + st.alarm.appliances.length;
-  const alerts = [
-    alarmCount ? `Turnout alarm for ${[st.alarm.stations.length && `${st.alarm.stations.length} station${st.alarm.stations.length === 1 ? "" : "s"}`, st.alarm.appliances.length && `${st.alarm.appliances.length} truck${st.alarm.appliances.length === 1 ? "" : "s"}`].filter(Boolean).join(" and ")}` : "Turnout alarm off",
-    st.priorityAlarm.scope === "off" ? "priority alarm off" : st.priorityAlarm.scope === "any" ? "priority alarm for any truck" : "priority alarm for chosen trucks",
-  ].join(" · ");
+  const alerts = [alarmCount ? `Turnout ${alarmCount}` : "Turnout off", `priority ${st.priorityAlarm.scope === "off" ? "off" : st.priorityAlarm.scope === "any" ? "all" : "chosen"}`].join(", ");
   const mine = [...new Set([...st.watched, ...st.alarm.stations])];
-  const cards: [Section, string, string, ReactNode?][] = [
-    ["source", "Radio source", source],
-    ["alerts", "Alerts & alarms", alerts],
-    ["inbox", "Unknown codes", board.inbox.length ? `${board.inbox.length} waiting for you to identify` : "Nothing waiting", board.inbox.length ? <span className="badge static">{board.inbox.length}</span> : undefined],
-    ["codebook", "Stations & trucks", `${cb.stations.length} stations · ${cb.appliances.length} trucks · ${cb.turnoutCodes.length} codes${origin === "local" ? " · edited here" : origin === "backend" ? " · shared" : ""}`],
-    ["backup", "Backup & sharing", "Export, import or reset the codebook"],
-  ];
+  const row = (label: string, value: ReactNode, onClick: () => void) => (
+    <button className="set-row" onClick={onClick}><span>{label}</span><span className="set-val">{value}</span><span className="chev" aria-hidden="true">›</span></button>
+  );
   return (
     <>
       <h1 className="page-title">Settings</h1>
-      <section className="setup-card">
-        <span className="sicon s-setup" aria-hidden="true">{SECTION_ICON.setup}</span>
-        <div className="grow">
-          <h2>{mine.length ? `Your station${mine.length === 1 ? "" : "s"}: ${mine.map(name).join(", ")}` : "Which station is yours?"}</h2>
-          <p>{mine.length ? "Change your station and trucks in one go." : "Pick your station and trucks once. They'll go on My board, get a star, and set off the turnout alarm."}</p>
-        </div>
-        <button className="btn primary" onClick={() => setSetup(true)}>{mine.length ? "Change" : "Set up my station"}</button>
-      </section>
-      <div className="settings-grid">
-        {cards.map(([key, title, summary, extra]) => (
-          <button key={key} className="settings-card" onClick={() => open(key)}>
-            <span className={`sicon s-${key}`} aria-hidden="true">{SECTION_ICON[key]}</span>
-            <span className="sc-text"><b>{title}</b><span>{summary}</span></span>
-            {extra}
-            <span className="chev" aria-hidden="true">›</span>
-          </button>
-        ))}
-        <a className="settings-card" href="#quiz">
-          <span className="sicon s-quiz" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" /></svg></span>
-          <span className="sc-text"><b>Tone quiz</b><span>Hear a turnout tone and guess the station</span></span>
-          <span className="chev" aria-hidden="true">›</span>
-        </a>
-        <a className="settings-card" href="./design-options.html" target="_blank" rel="noopener">
-          <span className="sicon s-looks" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1.1.3-2.2 1.5-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10Z" /><circle cx="7.5" cy="11" r="1" /><circle cx="10" cy="7" r="1" /><circle cx="15" cy="7.5" r="1" /></svg></span>
-          <span className="sc-text"><b>Design options</b><span>Compare four looks for the app (opens in a new tab)</span></span>
-          <span className="chev" aria-hidden="true">↗</span>
-        </a>
+      <div className="set-group">
+        {row("My station", mine.length ? mine.map(name).join(", ") : "Not set", () => setSetup(true))}
+        {row("Source", source, () => open("source"))}
+        {row("Alerts", alerts, () => open("alerts"))}
+      </div>
+      <div className="set-group">
+        {row("Unknown codes", board.inbox.length ? <span className="badge static">{board.inbox.length}</span> : "None", () => open("inbox"))}
+        {row("Codebook", `${cb.stations.length} stations, ${cb.appliances.length} trucks${origin === "local" ? " (edited)" : origin === "backend" ? " (shared)" : ""}`, () => open("codebook"))}
+        {row("Import / export", "", () => open("backup"))}
+      </div>
+      <div className="set-group">
+        {row("Tone quiz", "", () => { location.hash = "quiz"; })}
       </div>
       {setup && <QuickSetup close={() => setSetup(false)} />}
     </>
@@ -172,9 +134,9 @@ function QuickSetup({ close }: { close: () => void }) {
     close();
   };
   return (
-    <Sheet title="Set up my station" sub="Tick your trucks, or Add all for a whole station" onClose={close}>
+    <Sheet title="My station" onClose={close}>
       <UnitPicker stationMode="add-all" appliances={apps} onChange={(n) => setApps(n.appliances)} />
-      <label className="check"><input type="checkbox" checked={alarm} onChange={(e) => setAlarm(e.target.checked)} /> Sound the full-screen turnout alarm when these are turned out</label>
+      <label className="check"><input type="checkbox" checked={alarm} onChange={(e) => setAlarm(e.target.checked)} /> Turnout alarm for these trucks</label>
       <div className="row">
         <button className="btn primary" disabled={!apps.length} onClick={apply}>Save {apps.length ? `${apps.length} truck${apps.length === 1 ? "" : "s"}` : ""}</button>
         <span className="small muted">{stations.length ? `${stations.map((id) => cb.stations.find((s) => s.id === id)?.name).join(", ")}` : ""}</span>
@@ -189,7 +151,7 @@ function Inbox() {
   const { board, ix, now } = useBoard();
   const dismissed = useStore((s) => s.settings.dismissed);
   if (!board.inbox.length) {
-    return <section className="panel"><p className="empty">No unknown codes. Codes the board can't place show up here, with a suggested owner when the turnout-code pattern fits.</p></section>;
+    return <section className="panel"><p className="empty">No unknown codes.</p></section>;
   }
   return (
     <div className="feeds">
@@ -247,7 +209,7 @@ function InboxCard({ item, now, ixName, onDismiss }: { item: InboxItem; now: num
       )}
       {item.what === "unit" && (
         <>
-          <p className="note">Pick the appliance that uses selcall ID <code>{item.code}</code>. Its old ID is replaced.</p>
+          <p className="note">Appliance for unit ID <code>{item.code}</code>:</p>
           <label className="field"><span>Appliance</span>
             <select value={applianceId} onChange={(e) => setApplianceId(e.target.value)}>
               <option value="">Choose…</option>
@@ -266,7 +228,7 @@ function InboxCard({ item, now, ixName, onDismiss }: { item: InboxItem; now: num
       )}
       {item.what === "status" && (
         <>
-          <p className="note">What does message <code>{item.code}</code> mean? Saved meanings apply to every appliance.</p>
+          <p className="note">Meaning of <code>{item.code}</code>:</p>
           <div className="cols2">
             <label className="field"><span>Label</span><input value={status.label} onChange={(e) => setStatus({ ...status, label: e.target.value })} placeholder="e.g. Responding" /></label>
             <label className="field"><span>K-code</span><input value={status.kCode} onChange={(e) => setStatus({ ...status, kCode: e.target.value })} placeholder="e.g. K1" /></label>
@@ -358,7 +320,7 @@ function StationForm({ station, close }: { station: Station | null; close: () =>
           {station && <button className="btn danger" disabled={busy || inUse} title={inUse ? "Move or delete its appliances and codes first" : ""}
             onClick={async () => { if (await edit((c) => { c.stations = c.stations.filter((x) => x.id !== station.id); }, "Deleted.")) close(); }}>Delete</button>}
         </div>
-        {inUse && <p className="note">To delete this station, first move or delete its appliances and turnout codes.</p>}
+        {inUse && <p className="note">Remove its appliances and codes before deleting.</p>}
         <Msg msg={msg} />
       </div>
     </Sheet>
@@ -485,7 +447,7 @@ function MessagesEditor() {
     <>
       <section className="panel">
         <h2>Status messages <button className="btn" onClick={() => setOpenStatus(null)}>Add</button></h2>
-        <p className="note">Long appliance messages look like <code>D8611-F1A0C2</code>: the unit ID, then a message part. Each message part maps to a status here. Real meanings aren't confirmed yet; entries marked demo are the simulator's own encoding.</p>
+        <p className="note">Suffix after the unit ID in a long message, e.g. <code>D8611-<b>F1A0C2</b></code>.</p>
         <ul className="list">
           {cb.statusCodes.map((s) => (
             <li key={s.suffix}><button className="item" onClick={() => setOpenStatus(s)}>
@@ -498,7 +460,7 @@ function MessagesEditor() {
       </section>
       <section className="panel">
         <h2>Short appliance calls <button className="btn" onClick={() => setOpenType(null)}>Add</button></h2>
-        <p className="note">Short calls like <code>C072D2</code> are a unit ID plus one final tone. The final tone sets the call type: <code>B</code> is a priority call and <code>C</code> a routine call, both the truck asking Comcen to respond (urgently, or when they can). Priority calls raise the banner on the live board. Other final tones are unconfirmed.</p>
+        <p className="note">Final tone after the unit ID, e.g. <code>C072D<b>2</b></code>.</p>
         <ul className="list">
           {cb.callTypes.map((t) => (
             <li key={t.final}><button className="item" onClick={() => setOpenType(t)}>
@@ -586,29 +548,27 @@ function SourcePanel() {
   const httpsPage = typeof location !== "undefined" && location.protocol === "https:";
   return (
     <>
-      <div className="sources">
-        <button className="card-opt" aria-pressed={settings.mode === "demo"} onClick={demo}>
-<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17h3l2-9 3 13 3-17 2 13h3" /></svg></span><b>Demo</b><span className="small muted">Pretend Auckland traffic, made as real tones and decoded in this browser. Great for trying things out.</span>
-        </button>
-        <button className="card-opt" aria-pressed={settings.mode === "file"} onClick={() => { store.settings({ mode: "file" }); startSource(); }}>
-<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg></span><b>Recording</b><span className="small muted">Open an audio file or phone video. It plays back and the board follows along.</span>
-        </button>
-        <button className="card-opt" aria-pressed={settings.mode === "input"} onClick={() => { store.settings({ mode: "input" }); startSource(); }}>
-<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8" /></svg></span><b>Audio input</b><span className="small muted">Plug in a scanner (line-in, USB sound card or mic). Decoded live, and you hear it too.</span>
-        </button>
-        <button className="card-opt" aria-pressed={settings.mode === "backend"} onClick={connect}>
-<span className="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="7" rx="2" /><rect x="3" y="13" width="18" height="7" rx="2" /><path d="M7 7.5h.01M7 16.5h.01" /></svg></span><b>Live backend</b><span className="small muted">A Raspberry Pi with an SDR does the listening; everyone shares its calls and codebook.</span>
-        </button>
+      <div className="set-group" role="radiogroup" aria-label="Source">
+        {([
+          ["demo", "Demo", "Simulated Auckland traffic", demo],
+          ["file", "Recording", "Audio file or video", () => { store.settings({ mode: "file" }); startSource(); }],
+          ["input", "Audio input", "Scanner via line-in or USB", () => { store.settings({ mode: "input" }); startSource(); }],
+          ["backend", "Server", "Live calls from a receiver", connect],
+        ] as [string, string, string, () => void][]).map(([m, title, detail, pick]) => (
+          <button key={m} className="set-row radio" role="radio" aria-checked={settings.mode === m} onClick={pick}>
+            <span className="radio-dot" aria-hidden="true" /><span>{title}</span><span className="set-val">{detail}</span>
+          </button>
+        ))}
       </div>
       {settings.mode === "demo" && <DemoRadio />}
       {settings.mode === "input" && <InputPanel />}
       {settings.mode === "file" && <ImportPanel />}
       {settings.mode === "backend" && <section className="panel">
-        <h2>Backend</h2>
+        <h2>Server</h2>
         <div className="form">
-          <label className="field"><span>Backend address (blank = the server this page came from)</span>
+          <label className="field"><span>Address (blank for this server)</span>
             <input value={url} placeholder="https://firepi.example.nz" onChange={(e) => setUrl(e.target.value)} inputMode="url" autoCapitalize="off" autoCorrect="off" /></label>
-          <label className="field"><span>Editing key (only needed to change the codebook)</span>
+          <label className="field"><span>Editing key</span>
             <input value={key} type="password" autoComplete="off" onChange={(e) => setKey(e.target.value)} /></label>
           <div className="row">
             <button className="btn primary" onClick={connect}>{settings.mode === "backend" ? "Reconnect" : "Connect"}</button>
@@ -616,19 +576,15 @@ function SourcePanel() {
           </div>
           {conn.message && <div className={conn.status === "error" ? "error" : "note"}>{conn.message}</div>}
           {httpsPage && /^http:\/\//.test(url) && !/localhost|127\.0\.0\.1/.test(url) && (
-            <p className="error">This page is on https, so browsers block an http backend. Put the backend behind https, or open the board from the backend's own address.</p>
+            <p className="error">An https page can't reach an http server. Use https, or open the board from the server's address.</p>
           )}
         </div>
-        <p className="note">Run <code>python -m server --static web/dist</code> on the machine with the radio. It serves this same app, the live call feed and the shared codebook. See <code>server/README.md</code>.</p>
       </section>}
-      {settings.mode !== "backend" && (
-        <p className="note">Have a Raspberry Pi with an SDR running the backend? <button className="linkbtn" onClick={connect}>Connect to a backend</button></p>
-      )}
     </>
   );
 }
 
-const AUTO_CLEAR: [number, string][] = [[0, "When acknowledged"], [15, "15s"], [30, "30s"], [60, "1 min"]];
+const AUTO_CLEAR: [number, string][] = [[0, "On acknowledge"], [15, "15 s"], [30, "30 s"], [60, "60 s"]];
 
 /** How an alarm goes away: wait for Acknowledge, or clear by itself. */
 function AutoClear({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
@@ -660,25 +616,22 @@ function AlertsPanel() {
   return (
     <>
       <section className="panel">
-        <h2>Little nudges <small>while this page is open</small></h2>
-        <label className="check"><input type="checkbox" checked={alerts.prioritySound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ prioritySound: e.target.checked }); }} /> Chime and banner for every priority call</label>
-        <label className="check"><input type="checkbox" checked={alerts.watchedSound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ watchedSound: e.target.checked }); }} /> Chime when a watched station is turned out</label>
+        <h2>Chimes</h2>
+        <label className="check"><input type="checkbox" checked={alerts.prioritySound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ prioritySound: e.target.checked }); }} /> Priority calls</label>
+        <label className="check"><input type="checkbox" checked={alerts.watchedSound} onChange={(e) => { unlockAlertAudio(); store.alertSettings({ watchedSound: e.target.checked }); }} /> Turnouts at starred stations</label>
         <label className="check"><input type="checkbox" checked={alerts.notify} onChange={async (e) => {
-          if (e.target.checked && !(await askNotifications())) { setNote("Notifications are blocked for this site. Allow them in the browser's site settings."); return; }
+          if (e.target.checked && !(await askNotifications())) { setNote("Notifications are blocked for this site."); return; }
           store.alertSettings({ notify: e.target.checked });
-        }} /> Also show a notification when the page is in the background</label>
+        }} /> Notify when in the background</label>
         <div className="row">
-          <button className="btn" onClick={() => testSound("priority-chime", () => chime("priority"))}>Test priority chime</button>
-          <button className="btn" onClick={() => testSound("turnout-chime", () => chime("turnout"))}>Test turnout chime</button>
+          <button className="btn" onClick={() => testSound("priority-chime", () => chime("priority"))}>Test priority</button>
+          <button className="btn" onClick={() => testSound("turnout-chime", () => chime("turnout"))}>Test turnout</button>
         </div>
         {note && <p className="error">{note}</p>}
-        {perm === "unsupported" && <p className="note">This browser doesn't support notifications here. On iPhone, add the site to your home screen first.</p>}
-        <p className="note">Phones vibrate for priority calls where the browser allows it. Alerts only fire for calls heard while the page is open.</p>
+        {perm === "unsupported" && <p className="note">Notifications aren't available in this browser. On iPhone, add the site to your home screen.</p>}
       </section>
       <section className="panel">
-        <div className="alarm-preview turnout" aria-hidden="true"><b>TURNOUT</b><strong>261</strong><span>Grey Lynn</span></div>
-        <h2>The big red screen: turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
-        <p className="note">When any of these is turned out, the whole screen turns into a turnout alarm showing the truck. Choosing a station covers every truck there. The station's acknowledgement (its code ending in 0) never sets it off.</p>
+        <h2>Turnout alarm <small>{alarm.stations.length + alarm.appliances.length ? `${alarm.stations.length} station${alarm.stations.length === 1 ? "" : "s"}, ${alarm.appliances.length} truck${alarm.appliances.length === 1 ? "" : "s"}` : "off"}</small></h2>
         {(alarm.stations.length > 0 || alarm.appliances.length > 0) && (
           <div className="chips" style={{ flexWrap: "wrap" }}>
             {alarm.stations.map((id) => <button key={id} className="chip" onClick={() => store.alarm({ stations: alarm.stations.filter((x) => x !== id) })}>{cb.stations.find((s) => s.id === id)?.name} (station) ×</button>)}
@@ -689,27 +642,25 @@ function AlertsPanel() {
           </div>
         )}
         <div className="row">
-          <button className="btn primary" onClick={() => setPicking(true)}>{alarm.stations.length + alarm.appliances.length ? "Change stations and trucks" : "Choose stations and trucks"}</button>
-          <button className="btn" onClick={() => testSound("turnout-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })))}>Test the alarm</button>
+          <button className="btn primary" onClick={() => setPicking(true)}>{alarm.stations.length + alarm.appliances.length ? "Edit" : "Choose trucks"}</button>
+          <button className="btn" onClick={() => testSound("turnout-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "turnout" })))}>Test</button>
         </div>
-        <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Sound the alarm</label>
-        <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Keep sounding until it clears (up to 3 minutes)</label>
-        <AutoClear value={alarm.autoClear} onChange={(v) => store.alarm({ autoClear: v })} label="Turnout alarm goes away" />
+        <label className="check"><input type="checkbox" checked={alarm.sound} onChange={(e) => store.alarm({ sound: e.target.checked })} /> Siren</label>
+        <label className="check"><input type="checkbox" checked={alarm.repeat} onChange={(e) => store.alarm({ repeat: e.target.checked })} /> Repeat until cleared</label>
+        <AutoClear value={alarm.autoClear} onChange={(v) => store.alarm({ autoClear: v })} label="Clear" />
         {picking && (
-          <Sheet title="Turnout alarm" sub="Choose whole stations, or just some trucks" onClose={() => setPicking(false)}>
+          <Sheet title="Turnout alarm" onClose={() => setPicking(false)}>
             <UnitPicker stationMode="toggle" appliances={alarm.appliances} stations={alarm.stations} onChange={(n) => store.alarm(n)} />
             <div className="row"><button className="btn primary" onClick={() => setPicking(false)}>Done</button></div>
           </Sheet>
         )}
       </section>
       <section className="panel">
-        <div className="alarm-preview priority" aria-hidden="true"><b>PRIORITY CALL</b><strong>261</strong><span>Grey Lynn</span></div>
-        <h2>The big yellow screen: priority alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
-        <p className="note">A full-screen priority alarm with its own siren, showing which truck made the call. Every priority call still gets the banner and chime above.</p>
+        <h2>Priority alarm <small>{pa.scope === "off" ? "off" : pa.scope === "any" ? "any truck" : `${pa.stations.length + pa.appliances.length} chosen`}</small></h2>
         <div className="seg" role="group" aria-label="Priority alarm for">
           <button aria-pressed={pa.scope === "off"} onClick={() => store.priorityAlarm({ scope: "off" })}>Off</button>
           <button aria-pressed={pa.scope === "any"} onClick={() => store.priorityAlarm({ scope: "any" })}>Any truck</button>
-          <button aria-pressed={pa.scope === "chosen"} onClick={() => { store.priorityAlarm({ scope: "chosen" }); if (!pa.stations.length && !pa.appliances.length) setPickingPrio(true); }}>Chosen trucks</button>
+          <button aria-pressed={pa.scope === "chosen"} onClick={() => { store.priorityAlarm({ scope: "chosen" }); if (!pa.stations.length && !pa.appliances.length) setPickingPrio(true); }}>Chosen</button>
         </div>
         {pa.scope === "chosen" && (
           <>
@@ -718,31 +669,29 @@ function AlertsPanel() {
                 {chosenLabel(pa.stations, pa.appliances).map((l) => <span key={l} className="chip">{l}</span>)}
               </div>
             )}
-            <div className="row"><button className="btn" onClick={() => setPickingPrio(true)}>Choose stations and trucks</button></div>
+            <div className="row"><button className="btn" onClick={() => setPickingPrio(true)}>Edit</button></div>
           </>
         )}
-        {pa.scope !== "off" && <AutoClear value={pa.autoClear} onChange={(v) => store.priorityAlarm({ autoClear: v })} label="Priority alarm goes away" />}
-        <div className="row"><button className="btn" onClick={() => testSound("priority-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })))}>Test the priority alarm</button></div>
+        {pa.scope !== "off" && <AutoClear value={pa.autoClear} onChange={(v) => store.priorityAlarm({ autoClear: v })} label="Clear" />}
+        <div className="row"><button className="btn" onClick={() => testSound("priority-alarm", () => window.dispatchEvent(new CustomEvent("tb-test-alarm", { detail: "priority" })))}>Test</button></div>
         {pickingPrio && (
-          <Sheet title="Priority alarm" sub="Whole stations count every truck there" onClose={() => setPickingPrio(false)}>
+          <Sheet title="Priority alarm" onClose={() => setPickingPrio(false)}>
             <UnitPicker stationMode="toggle" appliances={pa.appliances} stations={pa.stations} onChange={(n) => store.priorityAlarm(n)} />
             <div className="row"><button className="btn primary" onClick={() => setPickingPrio(false)}>Done</button></div>
           </Sheet>
         )}
       </section>
       <section className="panel">
-        <h2>Sound <small>{muted ? "radio audio is muted" : "radio audio is on"}</small></h2>
-        <p className="note">Mute the radio audio (monitored input, demo tones, recordings) with the speaker button at the top. When any alert or alarm goes off, it un-mutes so you can hear what's happening, then mutes again.</p>
+        <h2>Unmute on alert <small>{muted ? "radio muted" : "radio on"}</small></h2>
         <div className="seg" role="group" aria-label="Un-mute for">
-          {([[0, "Don't un-mute"], [45, "45 seconds"], [60, "1 minute"]] as [number, string][]).map(([v, l]) => (
+          {([[0, "Off"], [45, "45 s"], [60, "60 s"]] as [number, string][]).map(([v, l]) => (
             <button key={v} aria-pressed={alerts.unmuteSeconds === v} onClick={() => store.alertSettings({ unmuteSeconds: v })}>{l}</button>
           ))}
         </div>
-        <p className="note">This controls the app's own sound. A web page can't turn off a phone's silent switch or raise its system volume, so keep the phone's volume up.</p>
       </section>
       <section className="panel">
-        <h2>Watched stations <small>{watched.length} starred</small></h2>
-        <p className="note">Watched stations are starred on the board, listed first, and chime when they're turned out. Star a station from its page (tap it on the map or in Stations).</p>
+        <h2>Starred stations <small>{watched.length}</small></h2>
+        {watched.length === 0 && <p className="note">Star a station from its page.</p>}
         {watched.length > 0 && (
           <ul className="list">
             {watched.map((id) => (

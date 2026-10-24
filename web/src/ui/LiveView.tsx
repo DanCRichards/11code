@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { boardText, isCommitted, nzDay, stateText } from "../core/derive";
 import { groupJobs, type Job } from "../core/incidents";
-import { applianceName, type Index } from "../core/interpret";
+import type { Index } from "../core/interpret";
 import type { ApplianceState, Interpreted } from "../core/types";
 import { demoActions, inputActions } from "../sources/controller";
 import { store, useStore } from "../store";
-import { ago, clockTime, EventPill, stateVar, ToneStrip, useBoard } from "./common";
+import { ago, clockTime, EventPill, stateVar, useBoard } from "./common";
 import { MapView } from "./MapView";
 import type { Nav } from "./nav";
 
@@ -23,7 +23,6 @@ const BOARD_GROUPS: [ApplianceState, string][] = [
 
 export function LiveView({ nav }: { nav: Nav }) {
   const { ix, events, board, now } = useBoard();
-  const lastCall = useStore((s) => s.lastCall);
   const watched = useStore((s) => s.settings.watched);
   const showMapSetting = useStore((s) => s.settings.showMap);
   const showMap = showMapSetting ?? (typeof window !== "undefined" && window.innerWidth >= 1100);
@@ -37,7 +36,6 @@ export function LiveView({ nav }: { nav: Nav }) {
   const prio = board.priorities[0];
   const showPrio = prio && now - prio.call.time < priorityMs && prio.call.time > hiddenUntil;
   const jobs = useMemo(() => groupJobs(events, ix, board, jobMs), [events, ix, board, jobMs]);
-  const lastEv = lastCall ? events.find((e) => e.call.id === lastCall.id) : undefined;
 
   return (
     <>
@@ -67,7 +65,7 @@ export function LiveView({ nav }: { nav: Nav }) {
         <div className="col-main">
           <section className="panel">
             <h2>Turnouts <small>{jobs.length ? `latest ${ago(jobs[0].start, now)}` : ""}</small></h2>
-            {jobs.length === 0 ? <p className="empty">No turnouts heard yet. They'll appear here as soon as a station is called.</p> : (
+            {jobs.length === 0 ? <p className="empty">No turnouts yet.</p> : (
               <div className="jobs">
                 {jobs.slice(0, 10).map((j) => <JobCard key={j.id} job={j} ix={ix} board={board} now={now} watched={watched} nav={nav} />)}
               </div>
@@ -80,7 +78,6 @@ export function LiveView({ nav }: { nav: Nav }) {
         <div className="col-side">
           <StatusBoard ix={ix} board={board} now={now} nav={nav} />
           <OnAir events={events} now={now} nav={nav} />
-          {lastEv && <LastCall ev={lastEv} name={lastEv.applianceId ? applianceName(ix, ix.appliance.get(lastEv.applianceId)!) : lastEv.title} />}
         </div>
       </div>
     </>
@@ -113,7 +110,6 @@ function JobCard({ job, ix, board, now, watched, nav }: { job: Job; ix: Index; b
         })}
       </div>
       <div className="job-foot small muted">
-        <span>{job.turnouts.map((t) => <code key={t.call.id}>{t.call.code}</code>)}</span>
         <span>{job.active ? "In progress" : "Appliances back"}</span>
       </div>
     </article>
@@ -129,7 +125,7 @@ function StatusBoard({ ix, board, now, nav }: { ix: Index; board: ReturnType<typ
   return (
     <section className="panel">
       <h2>Status board <button className="linkbtn small" onClick={() => nav.tab("appliances")}>All appliances</button></h2>
-      {groups.length === 0 ? <p className="empty">Every appliance heard from is on station.</p> : groups.map((g) => (
+      {groups.length === 0 ? <p className="empty">All appliances on station.</p> : groups.map((g) => (
         <div key={g.state} className="sb-group">
           <div className="sb-head"><i className="dot" style={{ background: stateVar(g.state) }} />{g.label}<span className="muted">{g.units.length}</span></div>
           <div className="sb-units">
@@ -169,7 +165,7 @@ function OnAir({ events, now, nav }: { events: Interpreted[]; now: number; nav: 
         {AIR_FILTERS.map(([k, label]) => <button key={k} className="chip" aria-pressed={f === k} onClick={() => setF(k)}>{label}</button>)}
       </div>
       {shown.length === 0 ? <p className="empty">Nothing heard yet.</p> : (
-        <ul className="list">{shown.map((e) => <LogItem key={e.call.id} ev={e} now={now} onOpen={() => openEvent(e, nav)} />)}</ul>
+        <ul className="list">{shown.map((e) => <LogItem key={e.call.id} ev={e} now={now} detail={false} onOpen={() => openEvent(e, nav)} />)}</ul>
       )}
     </section>
   );
@@ -185,9 +181,9 @@ function SourceStrip({ nav }: { nav: Nav }) {
   const settings = () => nav.tab("data", "source");
   let body;
   if (mode === "demo") {
-    body = <><span className="src-dot demo" /><span className="grow"><b>Demo traffic</b> <span className="muted">· {sim.speed}× speed</span></span>
+    body = <><span className="src-dot demo" /><span className="grow"><b>Demo</b> <span className="muted">{sim.speed}×</span></span>
       <button className="btn" aria-pressed={sim.sound} title="Play the demo's SelCall tones" onClick={() => { demoActions.unlockAudio(); store.sim({ sound: !sim.sound }); }}>
-        {sim.sound ? "Tones on" : "Tones off"}</button>
+        Tones</button>
       <button className="btn" onClick={() => { demoActions.unlockAudio(); demoActions.turnout(); }}>Simulate</button></>;
   } else if (mode === "input") {
     const on = input?.status === "listening";
@@ -217,30 +213,18 @@ export function openEvent(e: Interpreted, nav: Nav) {
   else if (e.type === "unknown-code" || e.type === "unknown-status") nav.tab("data", "inbox");
 }
 
-export function LogItem({ ev, now, onOpen, absolute }: { ev: Interpreted; now: number; onOpen?: () => void; absolute?: boolean }) {
+/** One call in a list. `detail` adds the raw code and decode confidence (the Log shows them). */
+export function LogItem({ ev, now, onOpen, absolute, detail = true }: { ev: Interpreted; now: number; onOpen?: () => void; absolute?: boolean; detail?: boolean }) {
   const pct = ev.call.code ? ` · ${Math.round(ev.call.confidence * 100)}%` : "";
   return (
     <li>
       <button className={`item${now - ev.call.time < 6000 ? " fresh" : ""}`} onClick={onOpen}>
         <span className="t">{absolute ? clockTime(ev.call.time) : ago(ev.call.time, now).replace(" ago", "")}</span>
-        <span className="what"><b>{ev.title}</b><span>{ev.type === "status" || ev.type === "appliance-call" || ev.type === "priority" ? `${ev.label} · ` : ""}<code>{ev.call.code || "—"}</code>{pct}</span></span>
+        <span className="what"><b>{ev.title}</b>{detail && <span>{ev.type === "status" || ev.type === "appliance-call" || ev.type === "priority" ? `${ev.label} · ` : ""}<code>{ev.call.code || "—"}</code>{pct}</span>}</span>
         <EventPill ev={ev} />
       </button>
     </li>
   );
 }
 
-function LastCall({ ev, name }: { ev: Interpreted; name: string }) {
-  const c = ev.call;
-  return (
-    <details className="panel lastcall">
-      <summary><span className="section-title">Last decode <small>{c.code || "no tones"} · {Math.round(c.confidence * 100)}%</small></span></summary>
-      <div><b>{name}</b> <span className="muted">· {ev.label}</span></div>
-      {c.slots && <ToneStrip slots={c.slots} long={c.kind === "appliance-msg"} />}
-      {c.sent && <div className="small muted">Sent <code>{c.sent}</code> · {c.sent === c.code ? "decoded exactly" : c.confidence < 0.5 ? "too noisy to trust" : "decoded differently"}</div>}
-      <div className={`meter${c.confidence < 0.5 ? " low" : ""}`}><i style={{ width: `${Math.round(c.confidence * 100)}%` }} /></div>
-      <div className="small muted">From {c.source === "demo" ? "synthesised demo audio" : c.source === "file" ? "the recording" : c.source === "input" ? "the audio input" : "the radio"}</div>
-    </details>
-  );
-}
 
